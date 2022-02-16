@@ -8,6 +8,7 @@ class ThemeColors {
   final Color line;
   final Color outline;
   final Color button;
+  final Color icon;
 
   ThemeColors({
     required this.background,
@@ -17,5 +18,6 @@ class ThemeColors {
     required this.line,
     required this.outline,
     required this.button,
+    required this.icon,
   });
 }

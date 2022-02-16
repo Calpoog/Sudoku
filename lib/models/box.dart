@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:sudoku/models/cell.dart';
+import 'cell.dart';
 
 // The Box represents a collection of Cells, all of which must have a unique
 //  digit (usually from 1-9) inside, for a given box to be valid
@@ -38,7 +38,7 @@ class Box {
   //   all members exist only once.
   // Future enhancements probably include identifying which cells contain
   //   duplicate digits
-  bool isValid(){
+  bool isValid() {
     List<Cell> _cellsCopy = cells;
     Set _digits = {};
     _cellsCopy.retainWhere((x) => _digits.add(x.digit));

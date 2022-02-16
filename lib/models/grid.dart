@@ -1,4 +1,4 @@
-import 'package:sudoku/models/box.dart';
+import 'box.dart';
 import 'dart:math';
 
 // The Grid represents a collection of Boxes, all of which must have unique values

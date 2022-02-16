@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:sudoku/colors.dart';
-import 'package:sudoku/models/box.dart';
-import 'package:sudoku/models/cell.dart';
-import 'package:sudoku/models/grid.dart';
+import 'colors.dart';
+import 'common/text.dart';
+import 'models/box.dart';
+import 'models/cell.dart';
+import 'models/grid.dart';
+
+import 'models/game.dart';
+import 'sudoku/grid_widget.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +32,7 @@ class MyApp extends StatelessWidget {
       accent: const Color.fromRGBO(177, 130, 58, 1),
       outline: const Color.fromRGBO(231, 231, 231, 0.2),
       button: const Color.fromRGBO(74, 80, 95, 1),
+      icon: const Color.fromRGBO(255, 255, 255, 0.5),
     );
 
     return Provider.value(
@@ -48,198 +53,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-const kMainLineWidth = 2.0;
-const kSubLineWidth = 1.0;
-
-class AppText extends StatelessWidget {
-  const AppText(this.text, {Key? key, this.size, this.weight}) : super(key: key);
-
-  final String text;
-  final double? size;
-  final FontWeight? weight;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = DefaultTextStyle.of(context);
-    return Text(
-      text,
-      style: TextStyle(
-        color: context.read<ThemeColors>().text,
-        fontSize: size ?? style.style.fontSize,
-        fontWeight: weight ?? style.style.fontWeight,
-      ),
-    );
-  }
-}
-
-class CellWidget extends StatelessWidget {
-  const CellWidget(this.cell, {Key? key, required this.size}) : super(key: key);
-
-  final Cell cell;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final game = context.watch<SudokuGame>();
-    final colors = context.read<ThemeColors>();
-    final isSelected = game.selectedCell == cell;
-    return GestureDetector(
-      onTap: () {
-        game.select(cell);
-      },
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          color: isSelected ? colors.accent : colors.background,
-        ),
-        child: AppText(
-          cell.digit.toString().replaceAll('0', ''),
-          size: size * 0.5,
-        ),
-      ),
-    );
-  }
-}
-
-class BoxWidget extends StatelessWidget {
-  const BoxWidget({Key? key, required this.box, required this.cellSize}) : super(key: key);
-
-  final Box box;
-  final double cellSize;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = cellSize * box.size + (box.size - 1) * kSubLineWidth;
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: context.read<ThemeColors>().line,
-      ),
-      child: Stack(
-        children: box.cells
-            .map(
-              (cell) => Positioned(
-                left: (cell.col - box.col * box.size) * (cellSize + kSubLineWidth),
-                top: (cell.row - box.row * box.size) * (cellSize + kSubLineWidth),
-                child: CellWidget(cell, size: cellSize),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-}
-
-class GridWidget extends StatelessWidget {
-  const GridWidget(this.grid, {Key? key}) : super(key: key);
-
-  final Grid grid;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.read<ThemeColors>();
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 5.0),
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          color: colors.accent,
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final double cellSize =
-                ((constraints.maxWidth - kMainLineWidth * 2 - kSubLineWidth * 6) / 9).floorToDouble();
-            final double boxOffset = cellSize * grid.size + kSubLineWidth * (grid.size - 1) + kMainLineWidth;
-            return SizedBox(
-              width: boxOffset * grid.size - kMainLineWidth,
-              height: boxOffset * grid.size - kMainLineWidth,
-              child: Stack(
-                children: grid.boxes
-                    .map(
-                      (box) => Positioned(
-                        left: box.col * boxOffset,
-                        top: box.row * boxOffset,
-                        child: BoxWidget(box: box, cellSize: cellSize),
-                      ),
-                    )
-                    .toList(),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class BoardPainter extends CustomPainter {
-  final double cellSize;
-  final ThemeColors colors;
-
-  BoardPainter(this.cellSize, this.colors);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final boardSize = 6 * kSubLineWidth + 2 * kMainLineWidth + 9 * cellSize;
-    var paint = Paint()
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round
-      ..color = colors.line;
-
-    for (int flip = 0; flip <= 1; flip++) {
-      for (int i = 1; i <= 8; i++) {
-        if (i % 3 == 0) continue;
-        final x = i * (cellSize + 1) + (i / 3).floor();
-        if (flip == 0) {
-          canvas.drawLine(Offset(x, 0), Offset(x, boardSize), paint);
-        } else {
-          canvas.drawLine(Offset(0, x), Offset(boardSize, x), paint);
-        }
-      }
-    }
-
-    paint = Paint()
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..color = colors.accent;
-
-    for (int flip = 0; flip <= 1; flip++) {
-      for (int i = 1; i <= 2; i++) {
-        final x = i * (cellSize * 3 + 3);
-        if (flip == 0) {
-          canvas.drawLine(Offset(x, 0), Offset(x, boardSize), paint);
-        } else {
-          canvas.drawLine(Offset(0, x), Offset(boardSize, x), paint);
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
-  }
-}
-
-class SudokuGame extends ChangeNotifier {
-  Cell? selectedCell;
-  int activeDigit = 0;
-
-  void select(Cell cell) {
-    selectedCell = cell;
-    notifyListeners();
-  }
-
-  void activate(int digit) {
-    activeDigit = digit;
-    notifyListeners();
-  }
-}
-
 class Sudoku extends StatelessWidget {
   Sudoku({Key? key}) : super(key: key);
 
@@ -252,54 +65,71 @@ class Sudoku extends StatelessWidget {
 
     return ChangeNotifierProvider(
       create: (context) => SudokuGame(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: DefaultTextStyle(
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: const [
-                  AppText('1:39s'),
-                  Expanded(child: Center(child: AppText('Sudoku', size: 22))),
-                  AppText('HARD'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20.0),
-          GridWidget(grid),
-          const SizedBox(height: 20.0),
-          LayoutBuilder(builder: (context, constraints) {
-            final spacing = constraints.maxWidth * 0.046;
-            final buttonSize = constraints.maxWidth * 0.13;
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final spacing = constraints.maxWidth * 0.046;
+          final buttonSize = constraints.maxWidth * 0.13;
 
-            return Container(
-              color: colors.surface,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                children: [
-                  _buildDigitButtonRow(buttonSize, spacing, 0, 5),
-                  SizedBox(height: spacing),
-                  _buildDigitButtonRow(
-                    buttonSize,
-                    spacing,
-                    5,
-                    4,
-                    Button(
-                      size: buttonSize,
-                      child: Icon(Icons.ac_unit, color: Colors.white),
-                    ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: DefaultTextStyle(
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: const [
+                      AppText('1:39s'),
+                      Expanded(child: Center(child: AppText('Sudoku', size: 22))),
+                      AppText('HARD'),
+                    ],
                   ),
-                ],
+                ),
               ),
-            );
-          }),
-        ],
+              const SizedBox(height: 20.0),
+              GridWidget(grid),
+              const SizedBox(height: 20.0),
+              Container(
+                color: colors.surface,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                  children: [
+                    _buildDigitButtonRow(buttonSize, spacing, 0, 5),
+                    SizedBox(height: spacing),
+                    _buildDigitButtonRow(
+                      buttonSize,
+                      spacing,
+                      5,
+                      4,
+                      Button(
+                        size: buttonSize,
+                        child: Icon(Icons.ac_unit, color: colors.icon),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Button(text: 'Restart', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+                  SizedBox(width: spacing),
+                  Button(text: 'Check', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+                  SizedBox(width: spacing),
+                  Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+                  SizedBox(width: spacing),
+                  Button(text: 'Pencil', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+                  SizedBox(width: spacing),
+                  Button(text: 'Undo', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+                ],
+              )
+            ],
+          );
+        },
       ),
     );
   }
@@ -328,32 +158,53 @@ class Button extends StatelessWidget {
     required this.child,
     this.isActive = false,
     this.onPressed,
+    this.text,
   }) : super(key: key);
 
   final double size;
   final Widget child;
   final bool isActive;
+  final String? text;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.read<ThemeColors>();
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: isActive ? colors.accent : colors.button,
+    final button = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: isActive ? colors.accent : colors.button,
+        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+        border: Border.all(color: isActive ? colors.accent : colors.outline),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          border: Border.all(color: isActive ? Colors.transparent : colors.outline),
-        ),
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Center(child: child),
+          splashColor: colors.accent,
+          onTap: onPressed,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Center(child: child),
+          ),
         ),
       ),
     );
+
+    if (text != null) {
+      return Column(
+        children: [
+          button,
+          const SizedBox(height: 7.0),
+          AppText(
+            text!.toUpperCase(),
+            size: 12 / 50 * size,
+          ),
+        ],
+      );
+    }
+    return button;
   }
 }
 
