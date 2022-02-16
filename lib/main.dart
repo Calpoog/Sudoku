@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sudoku/colors.dart';
+import 'package:sudoku/models/box.dart';
+import 'package:sudoku/models/cell.dart';
+import 'package:sudoku/models/grid.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
+  // SystemChrome.restoreSystemUIOverlays();
+
   runApp(const MyApp());
 }
 
@@ -18,6 +27,7 @@ class MyApp extends StatelessWidget {
       text: const Color.fromRGBO(255, 255, 255, 1),
       accent: const Color.fromRGBO(177, 130, 58, 1),
     );
+
     return Provider.value(
       value: colors,
       child: MaterialApp(
@@ -26,9 +36,10 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: colors.background,
+          fontFamily: 'Rubik',
         ),
-        home: SafeArea(
-          child: Scaffold(body: Sudoku()),
+        home: Scaffold(
+          body: SafeArea(child: Sudoku()),
         ),
       ),
     );
@@ -38,75 +49,123 @@ class MyApp extends StatelessWidget {
 const kMainLineWidth = 2.0;
 const kSubLineWidth = 1.0;
 
-class Cell extends StatelessWidget {
-  const Cell(this.cell, {Key? key, required this.size}) : super(key: key);
+class AppText extends StatelessWidget {
+  const AppText(this.text, {Key? key, this.size, this.weight}) : super(key: key);
 
-  final C cell;
+  final String text;
+  final double? size;
+  final FontWeight? weight;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = DefaultTextStyle.of(context);
+    return Text(
+      text,
+      style: TextStyle(
+        color: context.read<ThemeColors>().text,
+        fontSize: size ?? style.style.fontSize,
+        fontWeight: weight ?? style.style.fontWeight,
+      ),
+    );
+  }
+}
+
+class CellWidget extends StatelessWidget {
+  const CellWidget(this.cell, {Key? key, required this.size}) : super(key: key);
+
+  final Cell cell;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      color: Colors.white.withOpacity(0.5),
-      child: Text(cell.digit.toString()),
+    final game = context.watch<SudokuGame>();
+    final colors = context.read<ThemeColors>();
+    final isSelected = game.selectedCell == cell;
+    return GestureDetector(
+      onTap: () {
+        game.select(cell);
+      },
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: isSelected ? colors.accent : colors.background,
+        ),
+        child: AppText(
+          cell.digit.toString().replaceAll('0', ''),
+          size: size * 0.5,
+        ),
+      ),
     );
   }
 }
 
-class Box extends StatelessWidget {
-  const Box({Key? key, required this.cells, required this.cellSize}) : super(key: key);
+class BoxWidget extends StatelessWidget {
+  const BoxWidget({Key? key, required this.box, required this.cellSize}) : super(key: key);
 
-  final List<C> cells;
+  final Box box;
   final double cellSize;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (int x = 0; x < 3; x++)
-          Row(
-            children: [for (int y = x; y < x + 3; y++) Cell(cells[y], size: cellSize)],
-          ),
-      ],
+    final size = cellSize * box.size + (box.size - 1) * kSubLineWidth;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: context.read<ThemeColors>().line,
+      ),
+      child: Stack(
+        children: box.cells
+            .map(
+              (cell) => Positioned(
+                left: (cell.col - box.col * box.size) * (cellSize + kSubLineWidth),
+                top: (cell.row - box.row * box.size) * (cellSize + kSubLineWidth),
+                child: CellWidget(cell, size: cellSize),
+              ),
+            )
+            .toList(),
+      ),
     );
   }
 }
 
-class C {
-  final int x;
-  final int y;
-  int digit;
+class GridWidget extends StatelessWidget {
+  const GridWidget(this.grid, {Key? key}) : super(key: key);
 
-  C(this.x, this.y, this.digit);
-}
-
-class B {
-  final List<C> cells;
-
-  B(this.cells);
-}
-
-class Board extends StatelessWidget {
-  const Board(this.cells, {Key? key}) : super(key: key);
-
-  final List<C> cells;
+  final Grid grid;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.read<ThemeColors>();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-      child: AspectRatio(
-        aspectRatio: 1,
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 5.0),
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: colors.accent,
+        ),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final double cellSize =
                 ((constraints.maxWidth - kMainLineWidth * 2 - kSubLineWidth * 6) / 9).floorToDouble();
-            return Wrap(
-              children: [],
+            final double boxOffset = cellSize * grid.size + kSubLineWidth * (grid.size - 1) + kMainLineWidth;
+            return SizedBox(
+              width: boxOffset * grid.size - kMainLineWidth,
+              height: boxOffset * grid.size - kMainLineWidth,
+              child: Stack(
+                children: grid.boxes
+                    .map(
+                      (box) => Positioned(
+                        left: box.col * boxOffset,
+                        top: box.row * boxOffset,
+                        child: BoxWidget(box: box, cellSize: cellSize),
+                      ),
+                    )
+                    .toList(),
+              ),
             );
           },
         ),
@@ -164,17 +223,46 @@ class BoardPainter extends CustomPainter {
   }
 }
 
+class SudokuGame extends ChangeNotifier {
+  Cell? selectedCell;
+
+  void select(Cell cell) {
+    selectedCell = cell;
+    notifyListeners();
+  }
+}
+
 class Sudoku extends StatelessWidget {
   Sudoku({Key? key}) : super(key: key);
 
-  final cells = List.generate(81, (index) => C(index % 9, (index / 9).floor(), 2));
+  final grid = Grid.fromString('004300209005009001070060043006002087190007400050083000600000105003508690042910300');
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Board(cells),
-      ],
+    debugPrint(grid.toString());
+    return ChangeNotifierProvider(
+      create: (context) => SudokuGame(),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: DefaultTextStyle(
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: const [
+                  AppText('1:39s'),
+                  Expanded(child: Center(child: AppText('Sudoku', size: 22))),
+                  AppText('HARD'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20.0),
+          GridWidget(grid),
+        ],
+      ),
     );
   }
 }

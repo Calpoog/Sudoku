@@ -13,14 +13,33 @@ class Box {
   final int col;
   final int size;
   late List<Cell> cells;
-  Box({required this.size, required this.row, required this.col}){
-    final int _cellCount = pow(size, 2).toInt();
+
+  Box.empty({required this.size, required this.row, required this.col}) {
+    final int cellCount = pow(size, 2).toInt();
     cells = List<Cell>.generate(
-      _cellCount,
-      (int index) => Cell(
-        row:(index % size).toInt()+row*size,
-        col:(index/size).floor()+col*size
-      )
+      cellCount,
+      (int index) => Cell(row: (index % size).toInt() + row * size, col: (index / size).floor() + col * size),
     );
+  }
+
+  Box({required this.size, required this.row, required this.col, required List<int> digits}) {
+    final int cellCount = pow(size, 2).toInt();
+    cells = List.generate(
+      cellCount,
+      (index) => Cell(
+        row: (index / size).floor() + row * size,
+        col: (index % size).toInt() + col * size,
+        digit: digits[index],
+      ),
+    );
+  }
+
+  @override
+  String toString() {
+    String result = '';
+    for (int i = 0; i < cells.length; i++) {
+      result += cells[i].toString() + (i % 3 == 0 ? '\n' : '');
+    }
+    return result;
   }
 }
