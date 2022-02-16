@@ -5,11 +5,11 @@
 //  row: row that a cell sits on in a box
 //  col: column that a cell sits on in a box
 class Cell {
-  int digit = 0;
+  int digit;
   var candidates = [];
   final int row;
   final int col;
 
-  Cell({required this.row, required this.col});
+  Cell({required this.row, required this.col, this.digit = 0});
 
 }
