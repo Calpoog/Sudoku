@@ -12,4 +12,8 @@ class Cell {
 
   Cell({required this.row, required this.col, this.digit = 0});
 
+  @override
+  String toString() {
+    return 'Cell(row: $row, col: $col, digit: $digit)';
+  }
 }
