@@ -26,6 +26,8 @@ class MyApp extends StatelessWidget {
       surface: const Color.fromRGBO(48, 51, 58, 1),
       text: const Color.fromRGBO(255, 255, 255, 1),
       accent: const Color.fromRGBO(177, 130, 58, 1),
+      outline: const Color.fromRGBO(231, 231, 231, 0.2),
+      button: const Color.fromRGBO(74, 80, 95, 1),
     );
 
     return Provider.value(
@@ -225,9 +227,15 @@ class BoardPainter extends CustomPainter {
 
 class SudokuGame extends ChangeNotifier {
   Cell? selectedCell;
+  int activeDigit = 0;
 
   void select(Cell cell) {
     selectedCell = cell;
+    notifyListeners();
+  }
+
+  void activate(int digit) {
+    activeDigit = digit;
     notifyListeners();
   }
 }
@@ -240,9 +248,12 @@ class Sudoku extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint(grid.toString());
+    final colors = context.read<ThemeColors>();
+
     return ChangeNotifierProvider(
       create: (context) => SudokuGame(),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -261,6 +272,110 @@ class Sudoku extends StatelessWidget {
           ),
           const SizedBox(height: 20.0),
           GridWidget(grid),
+          const SizedBox(height: 20.0),
+          LayoutBuilder(builder: (context, constraints) {
+            final spacing = constraints.maxWidth * 0.046;
+            final buttonSize = constraints.maxWidth * 0.13;
+
+            return Container(
+              color: colors.surface,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              child: Column(
+                children: [
+                  _buildDigitButtonRow(buttonSize, spacing, 0, 5),
+                  SizedBox(height: spacing),
+                  _buildDigitButtonRow(
+                    buttonSize,
+                    spacing,
+                    5,
+                    4,
+                    Button(
+                      size: buttonSize,
+                      child: Icon(Icons.ac_unit, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDigitButtonRow(double buttonSize, double spacing, int start, int length, [Widget? extra]) {
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      ...List.generate(
+        length,
+        (index) => Padding(
+          padding: EdgeInsets.only(right: index < 4 ? spacing : 0),
+          child: DigitButton(
+            digit: index + 1 + start,
+            size: buttonSize,
+          ),
+        ),
+      ),
+      if (extra != null) extra,
+    ]);
+  }
+}
+
+class Button extends StatelessWidget {
+  const Button({
+    Key? key,
+    required this.size,
+    required this.child,
+    this.isActive = false,
+    this.onPressed,
+  }) : super(key: key);
+
+  final double size;
+  final Widget child;
+  final bool isActive;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.read<ThemeColors>();
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: isActive ? colors.accent : colors.button,
+          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          border: Border.all(color: isActive ? Colors.transparent : colors.outline),
+        ),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
+
+class DigitButton extends StatelessWidget {
+  const DigitButton({Key? key, required this.digit, required this.size}) : super(key: key);
+
+  final int digit;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final game = context.watch<SudokuGame>();
+    return Button(
+      size: size,
+      isActive: game.activeDigit == digit,
+      onPressed: () => game.activate(digit),
+      child: Stack(
+        children: [
+          AppText(
+            digit.toString(),
+            size: 32.0,
+          )
         ],
       ),
     );

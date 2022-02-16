@@ -31,7 +31,6 @@ class Grid {
   }
 
   factory Grid.fromString(String string, {int size = 3}) {
-    // final digits = RegExp('(\\d{$size})').allMatches(string).map((row) => row[0]!.split('')).toList();
     final boxCellCount = pow(size, 2).toInt();
     final boxCells = List.generate(boxCellCount.toInt(), (index) => <int>[]);
     for (int y = 0; y < boxCellCount; y++) {

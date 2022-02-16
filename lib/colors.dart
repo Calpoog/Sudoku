@@ -6,6 +6,8 @@ class ThemeColors {
   final Color accent;
   final Color text;
   final Color line;
+  final Color outline;
+  final Color button;
 
   ThemeColors({
     required this.background,
@@ -13,5 +15,7 @@ class ThemeColors {
     required this.accent,
     required this.text,
     required this.line,
+    required this.outline,
+    required this.button,
   });
 }
