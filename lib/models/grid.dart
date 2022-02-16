@@ -7,7 +7,7 @@ import 'dart:math';
 //  size: number of rows/columns in the entire board
 class Grid {
   // Number of cells is always size^(size*2)
-  int size;
+  final int size;
   late List<Box> boxes;
 
   Grid({this.size = 3}) {
