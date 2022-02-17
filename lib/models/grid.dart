@@ -90,6 +90,14 @@ class Grid {
     return true;
   }
 
+  bool isCellValid(Cell cell) {
+    if (!_isLineValid(rows[cell.row]) || !_isLineValid(cols[cell.col])) return false;
+    final boxX = (cell.col / size).floor();
+    final boxY = (cell.row / size).floor();
+    if (!boxes[boxY * size + boxX].isValid) return false;
+    return true;
+  }
+
   bool _isLineValid(List<Cell> line) {
     final digits = line.map((c) => c.digit).where((d) => d > 0);
     return digits.length == Set.from(digits).length;
