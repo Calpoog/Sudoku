@@ -45,6 +45,11 @@ class Box {
     return _cellsCopy.length == cells.length;
   }
 
+  bool isEmpty() {
+    Cell test = cells.firstWhere((x) => x.digit > 0 && x.candidates.isNotEmpty, orElse: () => Cell(row: -1, col: -1));
+    return test.row == -1;
+  }
+
   @override
   String toString() {
     String result = '';

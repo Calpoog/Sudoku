@@ -45,7 +45,6 @@ class SudokuGame extends ChangeNotifier {
     if (selectedCell == null) return;
     final cell = selectedCell!;
     cell.candidates.contains(activeDigit) ? cell.candidates.remove(activeDigit) : cell.candidates.add(activeDigit);
-    cell.candidates.sort();
   }
 
   void clearSelected() {
