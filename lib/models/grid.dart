@@ -95,6 +95,10 @@ class Grid {
     return digits.length == Set.from(digits).length;
   }
 
+  void updateCell(Cell cell) {
+    cells[cell.row * size * size + cell.col].merge(cell);
+  }
+
   @override
   String toString() {
     String result = '';

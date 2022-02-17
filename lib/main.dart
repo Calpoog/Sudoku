@@ -167,7 +167,12 @@ class GameActions extends StatelessWidget {
           onPressed: () => game.togglePencil(),
         ),
         SizedBox(width: spacing),
-        Button(text: 'Undo', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+        Button(
+          text: 'Undo',
+          size: buttonSize,
+          child: Icon(Icons.undo, color: colors.icon),
+          onPressed: () => game.undo(),
+        ),
       ],
     );
   }

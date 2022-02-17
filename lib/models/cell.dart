@@ -36,4 +36,23 @@ class Cell {
   }
 
   int get digit => _digit;
+
+  /// Create a new [Cell] using an optional digit and candidates override.
+  ///
+  /// Used in creating a copy of a [Cell] for history.
+  Cell copyWith({int? digit, List<int>? candidates}) {
+    final newCell = Cell(row: row, col: col, digit: digit ?? this.digit);
+    newCell.candidates.addAll(candidates ?? this.candidates);
+    return newCell;
+  }
+
+  /// Merges in the digit and candidates from another [Cell].
+  ///
+  /// Used in reverting a [Cell] from a history copy.
+  void merge(Cell other) {
+    digit = other.digit;
+    candidates
+      ..clear()
+      ..addAll(other.candidates);
+  }
 }

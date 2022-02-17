@@ -8,6 +8,9 @@ class SudokuGame extends ChangeNotifier {
   int activeDigit = 0;
   bool isPenciling = false;
 
+  // History is a list of copied cells (before its state is updated)
+  final List<Cell> history = [];
+
   void togglePencil() {
     isPenciling = !isPenciling;
     notifyListeners();
@@ -45,12 +48,6 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _toggleCandidate(int digit) {
-    if (selectedCell == null) return;
-    final cell = selectedCell!;
-    cell.candidates.contains(activeDigit) ? cell.candidates.remove(activeDigit) : cell.candidates.add(activeDigit);
-  }
-
   void clearSelected() {
     if (selectedCell != null && !selectedCell!.isClue) {
       _setDigit(selectedCell!, 0);
@@ -59,8 +56,28 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  _setDigit(Cell cell, int digit) {
+  void undo() {
+    if (history.isNotEmpty) {
+      final cell = history.removeLast();
+      grid.updateCell(cell);
+      notifyListeners();
+    }
+  }
+
+  void _toggleCandidate(int digit) {
+    if (selectedCell == null) return;
+    final cell = selectedCell!;
+    pushHistory(cell);
+    cell.candidates.contains(activeDigit) ? cell.candidates.remove(activeDigit) : cell.candidates.add(activeDigit);
+  }
+
+  void _setDigit(Cell cell, int digit) {
+    pushHistory(cell);
     cell.digit = digit;
     debugPrint('Valid: ${grid.isValid}');
+  }
+
+  void pushHistory(Cell cell) {
+    history.add(cell.copyWith());
   }
 }
