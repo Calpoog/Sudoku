@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       text: const Color.fromRGBO(255, 255, 255, 1),
       accent: const Color.fromRGBO(177, 130, 58, 1),
       outline: const Color.fromRGBO(231, 231, 231, 0.2),
-      button: const Color.fromRGBO(74, 80, 95, 1),
+      button: const Color.fromRGBO(39, 41, 47, 1),
       icon: const Color.fromRGBO(255, 255, 255, 0.5),
       indicatorDark: const Color.fromRGBO(14, 14, 15, 1),
       indicatorLight: const Color.fromRGBO(55, 57, 61, 1),
