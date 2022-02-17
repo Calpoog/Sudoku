@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../colors.dart';
+import 'colors.dart';
 
 class AppText extends StatelessWidget {
   const AppText(this.text, {Key? key, this.size, this.weight}) : super(key: key);

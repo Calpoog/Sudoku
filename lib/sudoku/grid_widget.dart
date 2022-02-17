@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../colors.dart';
+import '../common/colors.dart';
 import '../models/grid.dart';
 import 'box_widget.dart';
 import 'constants.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../colors.dart';
+import '../common/colors.dart';
 import 'constants.dart';
 
 class BoardPainter extends CustomPainter {
