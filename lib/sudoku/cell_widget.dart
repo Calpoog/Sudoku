@@ -25,14 +25,14 @@ class CellWidget extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        color: colors.background,
+        // color: colors.background,
         alignment: Alignment.center,
         child: Stack(
           alignment: Alignment.center,
           children: [
             // indicator
             Container(
-              margin: const EdgeInsets.all(3.0),
+              margin: const EdgeInsets.all(4.0),
               decoration: BoxDecoration(
                 color: isSelected
                     ? colors.accent

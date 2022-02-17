@@ -1,26 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../common/colors.dart';
+import '../models/cell.dart';
+import '../models/game.dart';
+import '../models/grid.dart';
 import 'constants.dart';
 
-class BoardPainter extends CustomPainter {
-  final double cellSize;
-  final ThemeColors colors;
+class GridPainter extends StatelessWidget {
+  const GridPainter({Key? key, required this.cellSize, required this.child}) : super(key: key);
 
-  BoardPainter(this.cellSize, this.colors);
+  final double cellSize;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.read<ThemeColors>();
+    final game = context.watch<SudokuGame>();
+    return CustomPaint(
+      child: child,
+      painter: GridCustomPainter(cellSize: cellSize, grid: game.grid, selectedCell: game.selectedCell, colors: colors),
+    );
+  }
+}
+
+class GridCustomPainter extends CustomPainter {
+  final double cellSize;
+  final Grid grid;
+  final ThemeColors colors;
+  final Cell? selectedCell;
+
+  GridCustomPainter({required this.cellSize, required this.grid, required this.selectedCell, required this.colors});
+
+  double _getOffset(int i) {
+    final mainLineOffset = (i / grid.size).floor() * (kMainLineWidth - kSubLineWidth);
+    return i * (cellSize + kSubLineWidth) - kSubLineWidth / 2 + mainLineOffset;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final boardSize = 6 * kSubLineWidth + 2 * kMainLineWidth + 9 * cellSize;
-    var paint = Paint()
-      ..strokeWidth = 1
+    final boardSize = size.width;
+    final gridSize = grid.size;
+
+    var paint = Paint()..color = colors.indicatorDark.withOpacity(0.3);
+
+    if (selectedCell != null) {
+      canvas.drawRect(Rect.fromLTWH(_getOffset(selectedCell!.col), 0, cellSize, boardSize), paint);
+      canvas.drawRect(Rect.fromLTWH(0, _getOffset(selectedCell!.row), boardSize, cellSize), paint);
+    }
+
+    paint = Paint()
+      ..strokeWidth = kSubLineWidth
       ..strokeCap = StrokeCap.round
       ..color = colors.line;
 
     for (int flip = 0; flip <= 1; flip++) {
-      for (int i = 1; i <= 8; i++) {
-        if (i % 3 == 0) continue;
-        final x = i * (cellSize + 1) + (i / 3).floor();
+      for (int i = 1; i < gridSize * gridSize; i++) {
+        if (i % gridSize == 0) continue;
+        final x = _getOffset(i);
         if (flip == 0) {
           canvas.drawLine(Offset(x, 0), Offset(x, boardSize), paint);
         } else {
@@ -30,13 +67,13 @@ class BoardPainter extends CustomPainter {
     }
 
     paint = Paint()
-      ..strokeWidth = 2
+      ..strokeWidth = kMainLineWidth
       ..strokeCap = StrokeCap.round
       ..color = colors.accent;
 
     for (int flip = 0; flip <= 1; flip++) {
-      for (int i = 1; i <= 2; i++) {
-        final x = i * (cellSize * 3 + 3);
+      for (int i = 1; i <= gridSize - 1; i++) {
+        final x = i * (gridSize * cellSize + kSubLineWidth * (gridSize - 1) + kMainLineWidth / 2) + i - 1;
         if (flip == 0) {
           canvas.drawLine(Offset(x, 0), Offset(x, boardSize), paint);
         } else {

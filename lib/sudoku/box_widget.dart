@@ -18,9 +18,6 @@ class BoxWidget extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: context.read<ThemeColors>().line,
-      ),
       child: Stack(
         children: box.cells
             .map(
