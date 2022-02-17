@@ -14,12 +14,16 @@ class SudokuGame extends ChangeNotifier {
   }
 
   void select(Cell cell) {
-    selectedCell = cell;
-    if (activeDigit > 0) {
-      if (isPenciling) {
-        _toggleCandidate(activeDigit);
-      } else if (!cell.isHint) {
-        cell.digit = activeDigit;
+    if (selectedCell == cell) {
+      selectedCell = null;
+    } else {
+      selectedCell = cell;
+      if (activeDigit > 0) {
+        if (isPenciling) {
+          _toggleCandidate(activeDigit);
+        } else if (!cell.isHint) {
+          cell.digit = activeDigit;
+        }
       }
     }
     notifyListeners();
