@@ -12,26 +12,16 @@ class Box {
   final int row;
   final int col;
   final int size;
-  late List<Cell> cells;
+  final List<Cell> cells = [];
 
-  Box.empty({required this.size, required this.row, required this.col}) {
-    final int cellCount = pow(size, 2).toInt();
-    cells = List<Cell>.generate(
-      cellCount,
-      (int index) => Cell(row: (index % size).toInt() + row * size, col: (index / size).floor() + col * size),
-    );
-  }
-
-  Box({required this.size, required this.row, required this.col, required List<int> digits}) {
-    final int cellCount = pow(size, 2).toInt();
-    cells = List.generate(
-      cellCount,
-      (index) => Cell(
-        row: (index / size).floor() + row * size,
-        col: (index % size).toInt() + col * size,
-        digit: digits[index],
-      ),
-    );
+  Box({required this.size, required this.row, required this.col, required List<Cell> cells}) {
+    final cellCount = pow(size, 2).toInt();
+    final offset = size * (row * cellCount + col);
+    for (int y = 0; y < size; y++) {
+      for (int x = 0; x < size; x++) {
+        this.cells.add(cells[offset + y * cellCount + x]);
+      }
+    }
   }
 
   // isValid checks the validity of the cells in a box - by making sure that
@@ -54,7 +44,7 @@ class Box {
   String toString() {
     String result = '';
     for (int i = 0; i < cells.length; i++) {
-      result += cells[i].toString() + (i % 3 == 0 ? '\n' : '');
+      result += cells[i].digit.toString() + ((i + 1) % 3 == 0 ? '\n' : '');
     }
     return result;
   }

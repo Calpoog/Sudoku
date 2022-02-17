@@ -21,7 +21,7 @@ class SudokuGame extends ChangeNotifier {
       if (activeDigit > 0) {
         if (isPenciling) {
           _toggleCandidate(activeDigit);
-        } else if (!cell.isHint) {
+        } else if (!cell.isClue) {
           cell.digit = activeDigit;
         }
       }
@@ -34,7 +34,7 @@ class SudokuGame extends ChangeNotifier {
       activeDigit = 0;
     } else {
       activeDigit = digit;
-      if (selectedCell != null && !selectedCell!.isHint) {
+      if (selectedCell != null && !selectedCell!.isClue) {
         if (isPenciling) {
           _toggleCandidate(digit);
         } else {
@@ -52,7 +52,7 @@ class SudokuGame extends ChangeNotifier {
   }
 
   void clearSelected() {
-    if (selectedCell != null && !selectedCell!.isHint) {
+    if (selectedCell != null && !selectedCell!.isClue) {
       selectedCell!.digit = 0;
     }
     activeDigit = 0;

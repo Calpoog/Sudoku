@@ -8,14 +8,14 @@ import 'dart:collection';
 
 class Cell {
   int _digit;
-  final bool isHint;
+  final bool isClue;
   final candidates = SplayTreeSet<int>();
   final int row;
   final int col;
 
   Cell({required this.row, required this.col, int digit = 0})
       : _digit = digit,
-        isHint = digit != 0;
+        isClue = digit != 0;
 
   @override
   String toString() {
