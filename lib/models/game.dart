@@ -7,6 +7,9 @@ class SudokuGame extends ChangeNotifier {
   Cell? selectedCell;
   int activeDigit = 0;
   bool isPenciling = false;
+  // I'm adding titles to games, but we don't need to keep this. I can change
+  //   loadGame to return a Map<String, SudokuGame> instead, we can decide later
+  String title = '';
 
   // History is a list of copied cells (before its state is updated)
   final List<Cell> history = [];
