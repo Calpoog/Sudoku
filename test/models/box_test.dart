@@ -27,5 +27,18 @@ void main() {
       box = Box(size: 3, row: 0, col: 2, cells: cells);
       expect(box.cells.map((e) => e.digit).join(), '209001043');
     });
+
+    test('is valid', () {
+      Box box = Box(size: 3, row: 1, col: 1, cells: cells);
+      expect(box.isValid, true);
+    });
+
+    test('is invalid with a repeated digit', () {
+      Box box = Box(size: 3, row: 1, col: 1, cells: cells);
+      box.cells[3].digit = 2;
+      expect(box.isValid, false);
+      box.cells[3].digit = 0;
+      expect(box.isValid, true);
+    });
   });
 }

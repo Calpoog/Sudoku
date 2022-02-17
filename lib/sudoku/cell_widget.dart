@@ -17,6 +17,7 @@ class CellWidget extends StatelessWidget {
     final game = context.watch<SudokuGame>();
     final colors = context.read<ThemeColors>();
     final isSelected = game.selectedCell == cell;
+    final matchDigit = game.selectedCell?.digit;
     return GestureDetector(
       onTap: () {
         game.select(cell);
@@ -24,35 +25,54 @@ class CellWidget extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
+        // color: colors.background,
         alignment: Alignment.center,
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          color: isSelected ? colors.accent : colors.background,
-        ),
-        child: cell.digit > 0
-            ? AppText(
-                cell.digit.toString().replaceAll('0', ''),
-                size: size * 0.5,
-                // weight: FontWeight.w300,
-              )
-            : Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(horizontal: size * 0.17),
-                child: Wrap(
-                  children: cell.candidates
-                      .map(
-                        (candidate) => Container(
-                          alignment: Alignment.center,
-                          width: size * 0.22,
-                          child: AppText(
-                            candidate.toString(),
-                            size: size / 5,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // indicator
+            Container(
+              margin: const EdgeInsets.all(4.0),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colors.accent
+                    : cell.digit > 0 && cell.digit == matchDigit
+                        ? colors.indicatorDark
+                        : cell.isClue
+                            ? colors.indicatorLight
+                            : Colors.transparent,
+                borderRadius: const BorderRadius.all(Radius.circular(6.0)),
               ),
+            ),
+            cell.digit > 0
+                ? Opacity(
+                    opacity: cell.isClue ? 0.7 : 1,
+                    child: AppText(
+                      cell.digit.toString().replaceAll('0', ''),
+                      size: size * 0.5,
+                      // weight: FontWeight.w300,
+                    ),
+                  )
+                : Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(horizontal: size * 0.17),
+                    child: Wrap(
+                      children: cell.candidates
+                          .map(
+                            (candidate) => Container(
+                              alignment: Alignment.center,
+                              width: size * 0.22,
+                              child: AppText(
+                                candidate.toString(),
+                                size: size / 5,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }

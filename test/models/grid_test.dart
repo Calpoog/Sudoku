@@ -18,7 +18,7 @@ void main() {
     test('has the correct rows', () {
       for (int i = 0; i < 9; i++) {
         final row = grid.rows[i];
-        expect(row.map((c) => c.digit).join(''), gridString.substring(i * 9, (i + 1) * 9));
+        expect(row.cells.map((c) => c.digit).join(''), gridString.substring(i * 9, (i + 1) * 9));
       }
     });
 
@@ -36,8 +36,50 @@ void main() {
       ];
       for (int i = 0; i < 9; i++) {
         final col = grid.cols[i];
-        expect(col.map((c) => c.digit).join(''), expectations[i]);
+        expect(col.cells.map((c) => c.digit).join(''), expectations[i]);
       }
+    });
+
+    test('is valid', () {
+      expect(grid.isValid, true);
+    });
+
+    test('is invalid when a row is invalid', () {
+      grid.cells[9].digit = 9;
+      expect(grid.isValid, false);
+      grid.cells[9].digit = 0;
+      expect(grid.isValid, true);
+    });
+
+    test('is invalid when a col is invalid', () {
+      grid.cells[4].digit = 8;
+      expect(grid.isValid, false);
+      grid.cells[4].digit = 0;
+      expect(grid.isValid, true);
+    });
+
+    test('is invalid when a box is invalid', () {
+      grid.cells[5].digit = 6;
+      expect(grid.isValid, false);
+      expect(grid.boxes[1].isValid, false);
+      grid.cells[5].digit = 0;
+      expect(grid.isValid, true);
+    });
+
+    test('can test the validity of individual cells', () {
+      final cell = grid.cells[0];
+      expect(grid.isCellValid(cell), true);
+      // col invalid
+      cell.digit = 1;
+      expect(grid.isCellValid(cell), false);
+      // row invalid
+      cell.digit = 2;
+      expect(grid.isCellValid(cell), false);
+      // box invalid
+      cell.digit = 7;
+      expect(grid.isCellValid(cell), false);
+      cell.digit = 0;
+      expect(grid.isCellValid(cell), true);
     });
   });
 }
