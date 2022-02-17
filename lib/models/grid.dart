@@ -4,6 +4,17 @@ import 'package:collection/collection.dart';
 
 import 'cell.dart';
 
+class Line {
+  final List<Cell> cells;
+  final bool Function(List<Cell> cells) validator;
+
+  Line({required this.cells, required this.validator});
+
+  bool isValid() {
+    return validator(cells);
+  }
+}
+
 // The Grid represents a collection of Boxes, all of which must have unique values
 //  within themselves as well as along the rows/columns of the entire grid
 // Fields:
@@ -16,10 +27,13 @@ class Grid {
   late final List<Cell> cells;
 
   /// A list of rows (list of cells) referencing the same Cell objects in `cells`
-  late final List<List<Cell>> rows;
+  final List<Line> rows = [];
 
   /// A list of cols (list of cells) referencing the same Cell objects in `cells`
-  late final List<List<Cell>> cols;
+  final List<Line> cols = [];
+
+  // TODO: other List<Line> for thermos, cages, etc. But keep them separate since
+  // the UI will need to understand which is which for drawing purposes.
 
   /// A list of boxes referencing the same Cell objects in `cells`
   late final List<Box> boxes;
@@ -50,23 +64,38 @@ class Grid {
       ),
     );
 
-    // Create list of rows from cells list
-    rows = List<List<Cell>>.generate(
-      count,
-      (index) => cells.sublist(
-        index * count,
-        count * (index + 1),
+    // Create rows as Lines
+    rows.addAll(
+      List.generate(
+        count,
+        (index) => Line(
+          cells: cells.sublist(
+            index * count,
+            count * (index + 1),
+          ),
+          validator: _noDupeValidator,
+        ),
       ),
     );
 
-    // Create list of cols from cells list
-    cols = List<List<Cell>>.generate(count, (index) {
-      final col = <Cell>[];
-      for (int i = 0; i < count; i++) {
-        col.add(cells[i * count + index]);
-      }
-      return col;
-    });
+    // Create columns as Lines
+    cols.addAll(
+      List.generate(
+        count,
+        (index) {
+          final col = <Cell>[];
+          for (int i = 0; i < count; i++) {
+            col.add(cells[i * count + index]);
+          }
+          return Line(
+            cells: col,
+            validator: _noDupeValidator,
+          );
+        },
+      ),
+    );
+
+    // TODO: thermos and cages will also be Line lists
   }
 
   factory Grid.empty({int size = 3}) {
@@ -78,11 +107,9 @@ class Grid {
   }
 
   bool get isValid {
-    for (var row in rows) {
-      if (!_isLineValid(row)) return false;
-    }
-    for (var col in cols) {
-      if (!_isLineValid(col)) return false;
+    final lines = List.from(rows)..addAll(cols); // ..addAll(thermos)..addALl(cages)
+    for (var line in lines) {
+      if (!line.isValid()) return false;
     }
     for (var box in boxes) {
       if (!box.isValid) return false;
@@ -90,17 +117,14 @@ class Grid {
     return true;
   }
 
+  /// Checks only the validity of a [Cell] based on the rows/cols/boxes/thermos/cages it is in
   bool isCellValid(Cell cell) {
-    if (!_isLineValid(rows[cell.row]) || !_isLineValid(cols[cell.col])) return false;
+    // TODO: we'd have to figure out which thermos/cages it's in to check only the ones that matter
+    if (!rows[cell.row].isValid() || !cols[cell.col].isValid()) return false;
     final boxX = (cell.col / size).floor();
     final boxY = (cell.row / size).floor();
     if (!boxes[boxY * size + boxX].isValid) return false;
     return true;
-  }
-
-  bool _isLineValid(List<Cell> line) {
-    final digits = line.map((c) => c.digit).where((d) => d > 0);
-    return digits.length == Set.from(digits).length;
   }
 
   void updateCell(Cell cell) {
@@ -122,4 +146,9 @@ class Grid {
     }
     return result;
   }
+}
+
+bool _noDupeValidator(List<Cell> cells) {
+  final digits = cells.map((c) => c.digit).where((d) => d > 0);
+  return digits.length == Set.from(digits).length;
 }

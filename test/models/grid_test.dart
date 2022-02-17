@@ -18,7 +18,7 @@ void main() {
     test('has the correct rows', () {
       for (int i = 0; i < 9; i++) {
         final row = grid.rows[i];
-        expect(row.map((c) => c.digit).join(''), gridString.substring(i * 9, (i + 1) * 9));
+        expect(row.cells.map((c) => c.digit).join(''), gridString.substring(i * 9, (i + 1) * 9));
       }
     });
 
@@ -36,7 +36,7 @@ void main() {
       ];
       for (int i = 0; i < 9; i++) {
         final col = grid.cols[i];
-        expect(col.map((c) => c.digit).join(''), expectations[i]);
+        expect(col.cells.map((c) => c.digit).join(''), expectations[i]);
       }
     });
 
