@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sudoku/models/cell.dart';
+import 'cell.dart';
 
 class SudokuGame extends ChangeNotifier {
   Cell? selectedCell;
@@ -7,6 +7,9 @@ class SudokuGame extends ChangeNotifier {
 
   void select(Cell cell) {
     selectedCell = cell;
+    if (activeDigit > 0 && !cell.isHint) {
+      cell.digit = activeDigit;
+    }
     notifyListeners();
   }
 
@@ -15,7 +18,18 @@ class SudokuGame extends ChangeNotifier {
       activeDigit = 0;
     } else {
       activeDigit = digit;
+      if (selectedCell != null && !selectedCell!.isHint) {
+        selectedCell!.digit = digit;
+      }
     }
+    notifyListeners();
+  }
+
+  void clearSelected() {
+    if (selectedCell != null && !selectedCell!.isHint) {
+      selectedCell!.digit = 0;
+    }
+    activeDigit = 0;
     notifyListeners();
   }
 }

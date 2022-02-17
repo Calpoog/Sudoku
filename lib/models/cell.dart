@@ -6,11 +6,12 @@
 //  col: column that a cell sits on in a box
 class Cell {
   int digit;
-  var candidates = [];
+  final bool isHint;
+  final candidates = [];
   final int row;
   final int col;
 
-  Cell({required this.row, required this.col, this.digit = 0});
+  Cell({required this.row, required this.col, this.digit = 0}) : isHint = digit != 0;
 
   @override
   String toString() {
