@@ -9,6 +9,8 @@ class ThemeColors {
   final Color outline;
   final Color button;
   final Color icon;
+  final Color indicatorDark;
+  final Color indicatorLight;
 
   ThemeColors({
     required this.background,
@@ -19,5 +21,7 @@ class ThemeColors {
     required this.outline,
     required this.button,
     required this.icon,
+    required this.indicatorDark,
+    required this.indicatorLight,
   });
 }
