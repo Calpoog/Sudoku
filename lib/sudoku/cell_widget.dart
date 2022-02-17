@@ -17,7 +17,9 @@ class CellWidget extends StatelessWidget {
     final game = context.watch<SudokuGame>();
     final colors = context.read<ThemeColors>();
     final isSelected = game.selectedCell == cell;
-    final matchDigit = game.selectedCell?.digit;
+    final matchDigit = game.selectedCell?.digit ?? 0;
+    final isMatch = matchDigit > 0 && (cell.digit == matchDigit || cell.candidates.contains(matchDigit));
+
     return GestureDetector(
       onTap: () {
         game.select(cell);
@@ -36,7 +38,7 @@ class CellWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? colors.accent
-                    : cell.digit > 0 && cell.digit == matchDigit
+                    : isMatch
                         ? colors.indicatorDark
                         : cell.isClue
                             ? colors.indicatorLight
