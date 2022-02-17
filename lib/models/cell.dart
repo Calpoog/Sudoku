@@ -6,7 +6,7 @@
 //  col: column that a cell sits on in a box
 class Cell {
   int digit;
-  var candidates = [];
+  Set candidates = {};
   final int row;
   final int col;
 
@@ -15,5 +15,23 @@ class Cell {
   @override
   String toString() {
     return 'Cell(row: $row, col: $col, digit: $digit)';
+  }
+
+  clearCandidates(){
+    candidates = {};
+  }
+
+  clearDigit(){
+    digit = 0;
+  }
+
+  // This assumes we want to delete the candidates when the user chooses a digit
+  setDigit(int digit){
+    clearCandidates();
+    this.digit = digit;
+  }
+
+  int getDigit(){
+    return digit;
   }
 }
