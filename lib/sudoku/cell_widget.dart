@@ -29,11 +29,30 @@ class CellWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? colors.accent : colors.background,
         ),
-        child: AppText(
-          cell.digit.toString().replaceAll('0', ''),
-          size: size * 0.5,
-          // weight: FontWeight.w300,
-        ),
+        child: cell.digit > 0
+            ? AppText(
+                cell.digit.toString().replaceAll('0', ''),
+                size: size * 0.5,
+                // weight: FontWeight.w300,
+              )
+            : Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(horizontal: size * 0.17),
+                child: Wrap(
+                  children: cell.candidates
+                      .map(
+                        (candidate) => Container(
+                          alignment: Alignment.center,
+                          width: size * 0.22,
+                          child: AppText(
+                            candidate.toString(),
+                            size: size / 5,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
       ),
     );
   }

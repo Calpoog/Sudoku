@@ -56,13 +56,10 @@ class MyApp extends StatelessWidget {
 }
 
 class Sudoku extends StatelessWidget {
-  Sudoku({Key? key}) : super(key: key);
-
-  final grid = Grid.fromString('004300209005009001070060043006002087190007400050083000600000105003508690042910300');
+  const Sudoku({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(grid.toString());
     final colors = context.read<ThemeColors>();
     final spacing = relativeWidth(context, 0.046);
     final buttonSize = relativeWidth(context, 0.13);
@@ -70,6 +67,7 @@ class Sudoku extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => SudokuGame(),
       child: Builder(builder: (context) {
+        final game = context.read<SudokuGame>();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -89,7 +87,7 @@ class Sudoku extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20.0),
-            GridWidget(grid),
+            GridWidget(game.grid),
             const SizedBox(height: 20.0),
             Container(
               color: colors.surface,
@@ -107,27 +105,14 @@ class Sudoku extends StatelessWidget {
                     Button(
                       size: buttonSize,
                       child: Icon(Icons.ac_unit, color: colors.icon),
-                      onPressed: () => context.read<SudokuGame>().clearSelected(),
+                      onPressed: () => game.clearSelected(),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Button(text: 'Restart', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-                SizedBox(width: spacing),
-                Button(text: 'Check', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-                SizedBox(width: spacing),
-                Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-                SizedBox(width: spacing),
-                Button(text: 'Pencil', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-                SizedBox(width: spacing),
-                Button(text: 'Undo', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-              ],
-            )
+            GameActions(buttonSize: buttonSize, spacing: spacing),
           ],
         );
       }),
@@ -148,5 +133,42 @@ class Sudoku extends StatelessWidget {
       ),
       if (extra != null) extra,
     ]);
+  }
+}
+
+class GameActions extends StatelessWidget {
+  const GameActions({
+    Key? key,
+    required this.buttonSize,
+    required this.spacing,
+  }) : super(key: key);
+
+  final double buttonSize;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final game = context.watch<SudokuGame>();
+    final colors = context.read<ThemeColors>();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Button(text: 'Restart', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+        SizedBox(width: spacing),
+        Button(text: 'Check', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+        SizedBox(width: spacing),
+        Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+        SizedBox(width: spacing),
+        Button(
+          text: 'Pencil',
+          size: buttonSize,
+          child: Icon(Icons.undo, color: colors.icon),
+          isActive: game.isPenciling,
+          onPressed: () => game.togglePencil(),
+        ),
+        SizedBox(width: spacing),
+        Button(text: 'Undo', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+      ],
+    );
   }
 }

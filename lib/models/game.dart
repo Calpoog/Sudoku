@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
 import 'cell.dart';
+import 'grid.dart';
 
 class SudokuGame extends ChangeNotifier {
+  Grid grid = Grid.fromString('004300209005009001070060043006002087190007400050083000600000105003508690042910300');
   Cell? selectedCell;
   int activeDigit = 0;
+  bool isPenciling = false;
+
+  void togglePencil() {
+    isPenciling = !isPenciling;
+    notifyListeners();
+  }
 
   void select(Cell cell) {
     selectedCell = cell;
-    if (activeDigit > 0 && !cell.isHint) {
-      cell.digit = activeDigit;
+    if (activeDigit > 0) {
+      if (isPenciling) {
+        _toggleCandidate(activeDigit);
+      } else if (!cell.isHint) {
+        cell.digit = activeDigit;
+      }
     }
     notifyListeners();
   }
@@ -19,10 +31,21 @@ class SudokuGame extends ChangeNotifier {
     } else {
       activeDigit = digit;
       if (selectedCell != null && !selectedCell!.isHint) {
-        selectedCell!.digit = digit;
+        if (isPenciling) {
+          _toggleCandidate(digit);
+        } else {
+          selectedCell!.digit = digit;
+        }
       }
     }
     notifyListeners();
+  }
+
+  void _toggleCandidate(int digit) {
+    if (selectedCell == null) return;
+    final cell = selectedCell!;
+    cell.candidates.contains(activeDigit) ? cell.candidates.remove(activeDigit) : cell.candidates.add(activeDigit);
+    cell.candidates.sort();
   }
 
   void clearSelected() {
