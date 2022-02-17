@@ -77,6 +77,24 @@ class Grid {
     return Grid._internal(digits: string.split('').map((d) => int.parse(d)).toList(), size: size);
   }
 
+  bool get isValid {
+    for (var row in rows) {
+      if (!_isLineValid(row)) return false;
+    }
+    for (var col in cols) {
+      if (!_isLineValid(col)) return false;
+    }
+    for (var box in boxes) {
+      if (!box.isValid) return false;
+    }
+    return true;
+  }
+
+  bool _isLineValid(List<Cell> line) {
+    final digits = line.map((c) => c.digit).where((d) => d > 0);
+    return digits.length == Set.from(digits).length;
+  }
+
   @override
   String toString() {
     String result = '';

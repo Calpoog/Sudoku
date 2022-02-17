@@ -22,7 +22,7 @@ class SudokuGame extends ChangeNotifier {
         if (isPenciling) {
           _toggleCandidate(activeDigit);
         } else if (!cell.isClue) {
-          cell.digit = activeDigit;
+          _setDigit(cell, activeDigit);
         }
       }
     }
@@ -38,7 +38,7 @@ class SudokuGame extends ChangeNotifier {
         if (isPenciling) {
           _toggleCandidate(digit);
         } else {
-          selectedCell!.digit = digit;
+          _setDigit(selectedCell!, digit);
         }
       }
     }
@@ -53,9 +53,14 @@ class SudokuGame extends ChangeNotifier {
 
   void clearSelected() {
     if (selectedCell != null && !selectedCell!.isClue) {
-      selectedCell!.digit = 0;
+      _setDigit(selectedCell!, 0);
     }
     activeDigit = 0;
     notifyListeners();
+  }
+
+  _setDigit(Cell cell, int digit) {
+    cell.digit = digit;
+    debugPrint('Valid: ${grid.isValid}');
   }
 }

@@ -28,11 +28,9 @@ class Box {
   //   all members exist only once.
   // Future enhancements probably include identifying which cells contain
   //   duplicate digits
-  bool isValid() {
-    List<Cell> _cellsCopy = cells;
-    Set _digits = {};
-    _cellsCopy.retainWhere((x) => _digits.add(x.digit));
-    return _cellsCopy.length == cells.length;
+  bool get isValid {
+    final digits = cells.map((c) => c.digit).where((d) => d > 0);
+    return digits.length == Set.from(digits).length;
   }
 
   bool isEmpty() {
