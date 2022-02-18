@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/game.dart';
+import '../models/grid.dart';
 
 // Keys for storage/retrieval DO NOT CHANGE ONCE FINALIZED
 String saveTitlesKey = 'SaveTitles';
@@ -16,12 +18,13 @@ class ManageSaves {
   //   need to be saved, there's no need to limit it to a String and put the
   //   burden of serialization on the game logic - however I just don't know which
   //   fields we'll want to save here yet, so I have a string for now.
-  static Future<void> saveGame(String gameState, String saveName) async {
+  static Future<void> saveGame(SudokuGame gameState, String saveName) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final List<String> saves = prefs.getStringList(saveTitlesKey) ?? [];
+    String game = serializeGame(gameState);
     saves.add(saveName);
     unawaited(prefs.setStringList(saveTitlesKey, saves));
-    unawaited(prefs.setString(saveName, gameState));
+    unawaited(prefs.setString(saveName, game));
 
   }
 
@@ -46,6 +49,9 @@ class ManageSaves {
   static SudokuGame deserializeGame(String gameState) {
     // We gotta figure out our syntax for serialization/deserialization and put
     //   that here
+    Map<String, dynamic> loadedGame = jsonDecode(gameState);
+    SudokuGame game = SudokuGame();
+    game.grid = Grid.deSerialize(loadedGame['grid']);
     return SudokuGame();
   }
 
@@ -54,6 +60,13 @@ class ManageSaves {
     //   because we don't wanna save useless shit like white space for formatting
     //   but until we decide the structure of a save, I'm leaving this default
     //   toString lol
-    return game.toString();
+    final int currentTime = DateTime.now().millisecondsSinceEpoch;
+    // We still need tracked playtime here.
+    final String gridState = game.grid.serialize();
+    Map<String, dynamic> serialGame = {
+      "lastPlayed": currentTime,
+      "grid": gridState
+    };
+    return json.encode(serialGame);
   }
 }

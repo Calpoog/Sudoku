@@ -8,7 +8,7 @@ import 'dart:collection';
 
 class Cell {
   int _digit;
-  final bool isClue;
+  bool isClue;
   final candidates = SplayTreeSet<int>();
   final int row;
   final int col;
@@ -54,5 +54,6 @@ class Cell {
     candidates
       ..clear()
       ..addAll(other.candidates);
+    isClue = other.isClue;
   }
 }

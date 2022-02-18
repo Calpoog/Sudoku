@@ -131,6 +131,50 @@ class Grid {
     cells[cell.row * size * size + cell.col].merge(cell);
   }
 
+  String serialize(){
+    String gridState = '';
+    String delimiter = ',';
+    for (int i = 0; i <  cells.length; i++){
+      i == cells.length -1 ? delimiter = '': delimiter = ',';
+      if (cells[i].digit == 0){
+        if (cells[i].candidates.length > 1){
+          gridState+=cells[i].candidates.toString().replaceAll(', ', '')+delimiter;
+        } else {
+          gridState+='0'+delimiter;
+        }
+      } else {
+        if (cells[i].isClue){
+          gridState+='c';
+        }
+        gridState+=cells[i].digit.toString()+delimiter;
+      }
+    }
+    return gridState;
+  }
+
+  static Grid deSerialize(String grid){
+    // Assuming size 3 for now
+    final int count = pow(3, 2).toInt();
+    final Grid base = Grid.empty();
+    List<String> cellValues = grid.split(',');
+    for (int i = 0; i < cellValues.length; i++){
+      bool wasClue = false;
+      if(cellValues[i].contains('c')){
+        wasClue = true;
+        cellValues[i] = cellValues[i].replaceAll('c', '');
+      }
+      // Somehow simultaneously very clean and very messy...
+      Cell index = base.cells[i].copyWith(
+          digit: RegExp(r'^[0-9]$').hasMatch(cellValues[i]) ? int.parse(cellValues[i]) : 0,
+          candidates: RegExp(r'^{[0-9]+}$').hasMatch(cellValues[i]) ?
+          cellValues[i].replaceAll('{', '').replaceAll('}', '').split('').map((d) => int.parse(d)).toList() : []
+      );
+      index.isClue = wasClue;
+      base.updateCell(index);
+    }
+    return base;
+  }
+
   @override
   String toString() {
     String result = '';
