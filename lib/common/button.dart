@@ -12,6 +12,7 @@ class Button extends StatelessWidget {
     required this.child,
     this.isActive = false,
     this.onPressed,
+    this.onLongPress,
     this.text,
   }) : super(key: key);
 
@@ -20,6 +21,7 @@ class Button extends StatelessWidget {
   final bool isActive;
   final String? text;
   final VoidCallback? onPressed;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +40,7 @@ class Button extends StatelessWidget {
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
           splashColor: colors.accent,
           onTap: onPressed,
+          onLongPress: onLongPress,
           child: AspectRatio(
             aspectRatio: 1,
             child: Center(child: child),
@@ -75,6 +78,7 @@ class DigitButton extends StatelessWidget {
       size: size,
       isActive: game.activeDigit == digit,
       onPressed: () => game.activate(digit),
+      onLongPress: () => game.activate(digit, true),
       child: Stack(
         children: [
           AppText(

@@ -35,11 +35,11 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  void activate(int digit) {
+  void activate(int digit, [bool keepActive = false]) {
     if (digit == activeDigit) {
       activeDigit = 0;
     } else {
-      activeDigit = digit;
+      if (keepActive) activeDigit = digit;
       if (selectedCell != null && !selectedCell!.isClue) {
         if (isPenciling) {
           _toggleCandidate(digit);
