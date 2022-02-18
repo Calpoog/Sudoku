@@ -21,9 +21,9 @@ class CellWidget extends StatelessWidget {
     final isMatch = matchDigit > 0 && (cell.digit == matchDigit || cell.candidates.contains(matchDigit));
 
     return GestureDetector(
-      onTap: () {
-        game.select(cell);
-      },
+      onTap: () => game.select(cell),
+      onLongPress: () => game.clearCell(cell),
+      onDoubleTap: () => game.clearCell(cell),
       child: Container(
         width: size,
         height: size,

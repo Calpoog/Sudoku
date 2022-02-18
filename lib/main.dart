@@ -103,7 +103,7 @@ class Sudoku extends StatelessWidget {
                     Button(
                       size: buttonSize,
                       child: Icon(Icons.ac_unit, color: colors.icon),
-                      onPressed: () => game.clearSelected(),
+                      onPressed: () => game.clearCell(),
                     ),
                   ),
                 ],

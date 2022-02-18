@@ -51,8 +51,13 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearSelected() {
-    if (selectedCell != null && !selectedCell!.isClue) {
+  void clearCell([Cell? cell]) {
+    if (cell != null && !cell.isClue) {
+      cell.clear();
+      // this duplicates setting digit to 0 but also deals with history
+      _setDigit(cell, 0);
+      selectedCell = cell;
+    } else if (selectedCell != null && !selectedCell!.isClue) {
       _setDigit(selectedCell!, 0);
     }
     activeDigit = 0;
@@ -71,7 +76,7 @@ class SudokuGame extends ChangeNotifier {
     if (selectedCell == null) return;
     final cell = selectedCell!;
     pushHistory(cell);
-    cell.candidates.contains(activeDigit) ? cell.candidates.remove(activeDigit) : cell.candidates.add(activeDigit);
+    cell.candidates.contains(digit) ? cell.candidates.remove(digit) : cell.candidates.add(digit);
   }
 
   void _setDigit(Cell cell, int digit) {
