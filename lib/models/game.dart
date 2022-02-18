@@ -82,7 +82,7 @@ class SudokuGame extends ChangeNotifier {
   void _setDigit(Cell cell, int digit) {
     pushHistory(cell);
     cell.digit = digit;
-    debugPrint('Valid: ${grid.isValid}');
+    // debugPrint('Valid: ${grid.isValid}');
   }
 
   void pushHistory(Cell cell) {
