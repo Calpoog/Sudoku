@@ -42,6 +42,7 @@ class Cell {
   /// Used in creating a copy of a [Cell] for history.
   Cell copyWith({int? digit, List<int>? candidates}) {
     final newCell = Cell(row: row, col: col, digit: digit ?? this.digit);
+    newCell.isClue = isClue;
     newCell.candidates.addAll(candidates ?? this.candidates);
     return newCell;
   }

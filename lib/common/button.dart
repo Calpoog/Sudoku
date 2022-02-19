@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -82,16 +84,30 @@ class DigitButton extends StatelessWidget {
       isActive: game.activeDigit == digit,
       onPressed: () => game.activate(digit),
       onLongPress: () => game.activate(digit, true),
-      child: LayoutBuilder(builder: (context, constraints) {
-        return Stack(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
             AppText(
               digit.toString(),
-              size: 32 / 50 * constraints.maxHeight,
+              size: size * 0.6,
+            ),
+            Positioned(
+              bottom: size * 0.1,
+              right: size * 0.1,
+              child: Opacity(
+                opacity: 0.5,
+                child: AppText(
+                  (pow(game.grid.size, 2) - game.grid.cells.where((cell) => cell.digit == digit).length).toString(),
+                  size: size * 0.2,
+                ),
+              ),
             )
           ],
-        );
-      }),
+        ),
+      ),
     );
   }
 }

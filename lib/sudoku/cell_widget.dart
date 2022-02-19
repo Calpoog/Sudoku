@@ -53,7 +53,7 @@ class CellWidget extends StatelessWidget {
                   child: AppText(
                     cell.digit.toString().replaceAll('0', ''),
                     size: size * 0.5,
-                    // weight: FontWeight.w300,
+                    weight: FontWeight.w300,
                   ),
                 )
               : Container(
