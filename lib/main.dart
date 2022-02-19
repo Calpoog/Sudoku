@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'sudoku/constants.dart';
 import 'common/button.dart';
 import 'common/colors.dart';
 import 'common/spacing.dart';
@@ -45,7 +49,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: colors.background,
           fontFamily: 'Rubik',
         ),
-        home: Scaffold(
+        home: const Scaffold(
           body: SafeArea(child: Sudoku()),
         ),
       ),
@@ -58,62 +62,108 @@ class Sudoku extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.read<ThemeColors>();
-    final spacing = relativeWidth(context, 0.046);
-    final buttonSize = relativeWidth(context, 0.13);
-
     return ChangeNotifierProvider(
       create: (context) => SudokuGame(),
-      child: Builder(builder: (context) {
-        final game = context.read<SudokuGame>();
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: DefaultTextStyle(
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: const [
-                    AppText('1:39s'),
-                    Expanded(child: Center(child: AppText('Sudoku', size: 22))),
-                    AppText('HARD'),
-                  ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final game = context.read<SudokuGame>();
+          var shouldScroll = false;
+          var preferredGridSize = constraints.maxWidth;
+          var spacing = relativeWidth(context, 0.046).clamp(kMinSpacing, kMaxSpacing);
+          var buttonSize = relativeWidth(context, 0.13).clamp(kMinButtonSize, kMaxButtonSize);
+          var headerHeight = relativeWidth(context, 0.13).clamp(kMinHeaderHeight, kMaxHeaderHeight);
+
+          // Scenario 1: best is everything at their max size fits
+          var spaceRemaining = constraints.maxHeight - preferredGridSize - maxFixedHeight;
+          if (spaceRemaining < 0) {
+            // Scenario 2: try everything at their min to see if it fits
+            final size = game.grid.size;
+            preferredGridSize = kMinGridCellSize * size * size + (size - 1) * (kSubLineWidth * size + kMainLineWidth);
+            spaceRemaining = constraints.maxHeight - preferredGridSize - minFixedHeight;
+
+            if (spaceRemaining < 0) {
+              // Scenario 3: everything at their min does not fit, so scroll I guess
+              shouldScroll = true;
+              spacing = kMinSpacing;
+              buttonSize = kMinButtonSize;
+              headerHeight = kMinHeaderHeight;
+            } else {
+              // Scenario 2 works: there's a happy medium between min and max sizes
+              final factor = constraints.maxHeight / (minFixedHeight + preferredGridSize);
+
+              // the factor may be limited on the grid due to width
+              preferredGridSize = (preferredGridSize * factor).clamp(0, constraints.maxWidth);
+              spacing = kMinSpacing * factor;
+              buttonSize = kMinButtonSize * factor;
+              headerHeight = kMinHeaderHeight * factor;
+              spaceRemaining =
+                  constraints.maxHeight - (headerHeight + spacing * 6 + buttonSize * 3.5 + preferredGridSize);
+            }
+          } else {
+            // clamping due to width can mean there's additional space remaining to distribute
+            spaceRemaining +=
+                kMaxHeaderHeight - headerHeight + (kMaxSpacing - spacing) * 6 + (kMaxButtonSize - buttonSize) * 3.5;
+          }
+          final overflowSpacing = (spaceRemaining / 3).clamp(0, double.infinity).toDouble();
+          final colors = context.read<ThemeColors>();
+          final content =
+              _buildGame(spacing, preferredGridSize, game, colors, headerHeight, buttonSize, overflowSpacing);
+
+          return shouldScroll ? SingleChildScrollView(child: content) : content;
+        },
+      ),
+    );
+  }
+
+  Column _buildGame(
+    double spacing,
+    double preferredGridSize,
+    SudokuGame game,
+    ThemeColors colors,
+    double headerHeight,
+    double buttonSize,
+    double overflowSpacing,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SudokuHeader(
+          height: headerHeight,
+          contentWidth: preferredGridSize,
+        ),
+        SizedBox(height: overflowSpacing),
+        Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: preferredGridSize, maxHeight: preferredGridSize),
+            child: GridWidget(game.grid),
+          ),
+        ),
+        SizedBox(height: spacing + overflowSpacing.clamp(0, 100.0)),
+        Container(
+          color: colors.surface,
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(vertical: spacing),
+          child: Column(
+            children: [
+              _buildDigitButtonRow(buttonSize, spacing, 0, 5),
+              SizedBox(height: spacing),
+              _buildDigitButtonRow(
+                buttonSize,
+                spacing,
+                5,
+                4,
+                Button(
+                  size: buttonSize,
+                  child: Icon(Icons.ac_unit, color: colors.icon, size: buttonSize * 0.5),
+                  onPressed: () => game.clearCell(),
                 ),
               ),
-            ),
-            const SizedBox(height: 20.0),
-            GridWidget(game.grid),
-            const SizedBox(height: 20.0),
-            Container(
-              color: colors.surface,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                children: [
-                  _buildDigitButtonRow(buttonSize, spacing, 0, 5),
-                  SizedBox(height: spacing),
-                  _buildDigitButtonRow(
-                    buttonSize,
-                    spacing,
-                    5,
-                    4,
-                    Button(
-                      size: buttonSize,
-                      child: Icon(Icons.ac_unit, color: colors.icon),
-                      onPressed: () => game.clearCell(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            GameActions(buttonSize: buttonSize, spacing: spacing),
-          ],
-        );
-      }),
+            ],
+          ),
+        ),
+        GameActions(buttonSize: buttonSize, spacing: spacing),
+      ],
     );
   }
 
@@ -134,6 +184,41 @@ class Sudoku extends StatelessWidget {
   }
 }
 
+class SudokuHeader extends StatelessWidget {
+  const SudokuHeader({
+    Key? key,
+    required this.contentWidth,
+    required this.height,
+  }) : super(key: key);
+
+  final double height;
+  final double contentWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: DefaultTextStyle(
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        child: Container(
+          width: contentWidth,
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              SvgPicture.asset('assets/icons/back.svg', semanticsLabel: 'Back to menu'),
+              const AppText('1:39s', size: 14),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class GameActions extends StatelessWidget {
   const GameActions({
     Key? key,
@@ -148,30 +233,36 @@ class GameActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final game = context.watch<SudokuGame>();
     final colors = context.read<ThemeColors>();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Button(text: 'Restart', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-        SizedBox(width: spacing),
-        Button(text: 'Check', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-        SizedBox(width: spacing),
-        Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
-        SizedBox(width: spacing),
-        Button(
-          text: 'Pencil',
-          size: buttonSize,
-          child: Icon(Icons.undo, color: colors.icon),
-          isActive: game.isPenciling,
-          onPressed: () => game.togglePencil(),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: spacing),
+      child: IconTheme(
+        data: IconThemeData(size: buttonSize * 0.5),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Button(text: 'Restart', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+            SizedBox(width: spacing),
+            Button(text: 'Check', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+            SizedBox(width: spacing),
+            Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+            SizedBox(width: spacing),
+            Button(
+              text: 'Pencil',
+              size: buttonSize,
+              child: Icon(Icons.undo, color: colors.icon),
+              isActive: game.isPenciling,
+              onPressed: () => game.togglePencil(),
+            ),
+            SizedBox(width: spacing),
+            Button(
+              text: 'Undo',
+              size: buttonSize,
+              child: Icon(Icons.undo, color: colors.icon),
+              onPressed: () => game.undo(),
+            ),
+          ],
         ),
-        SizedBox(width: spacing),
-        Button(
-          text: 'Undo',
-          size: buttonSize,
-          child: Icon(Icons.undo, color: colors.icon),
-          onPressed: () => game.undo(),
-        ),
-      ],
+      ),
     );
   }
 }

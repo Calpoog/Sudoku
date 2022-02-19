@@ -53,10 +53,13 @@ class Button extends StatelessWidget {
       return Column(
         children: [
           button,
-          const SizedBox(height: 7.0),
-          AppText(
-            text!.toUpperCase(),
-            size: 12 / 50 * size,
+          Container(
+            height: size * 0.5,
+            alignment: Alignment.bottomCenter,
+            child: AppText(
+              text!.toUpperCase(),
+              size: 12 / 50 * size,
+            ),
           ),
         ],
       );
@@ -79,14 +82,16 @@ class DigitButton extends StatelessWidget {
       isActive: game.activeDigit == digit,
       onPressed: () => game.activate(digit),
       onLongPress: () => game.activate(digit, true),
-      child: Stack(
-        children: [
-          AppText(
-            digit.toString(),
-            size: 32.0,
-          )
-        ],
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        return Stack(
+          children: [
+            AppText(
+              digit.toString(),
+              size: 32 / 50 * constraints.maxHeight,
+            )
+          ],
+        );
+      }),
     );
   }
 }

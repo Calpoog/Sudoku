@@ -39,7 +39,7 @@ class SudokuGame extends ChangeNotifier {
     if (digit == activeDigit) {
       activeDigit = 0;
     } else {
-      if (keepActive) activeDigit = digit;
+      activeDigit = keepActive ? digit : 0;
       if (selectedCell != null && !selectedCell!.isClue) {
         if (isPenciling) {
           _toggleCandidate(digit);
