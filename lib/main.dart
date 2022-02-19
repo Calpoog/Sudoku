@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -210,7 +211,7 @@ class SudokuHeader extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               SvgPicture.asset('assets/icons/back.svg', semanticsLabel: 'Back to menu'),
-              const AppText('1:39s', size: 14),
+              Clock(size: height / 3),
             ],
           ),
         ),
@@ -264,5 +265,48 @@ class GameActions extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class Clock extends StatefulWidget {
+  const Clock({Key? key, required this.size}) : super(key: key);
+
+  final double size;
+
+  @override
+  _ClockState createState() => _ClockState();
+}
+
+class _ClockState extends State<Clock> {
+  late final Timer timer;
+  int seconds = 0;
+
+  @override
+  void initState() {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        seconds++;
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hours = (seconds / 3600).floor();
+    final mins = (seconds / 60).floor();
+    final secs = seconds % 60;
+    final time = [
+      if (hours > 0) hours,
+      if (mins > 0) mins,
+      secs,
+    ];
+    return AppText('${time.join(':')}s');
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
   }
 }
