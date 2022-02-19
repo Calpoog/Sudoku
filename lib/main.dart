@@ -156,7 +156,7 @@ class Sudoku extends StatelessWidget {
                 4,
                 Button(
                   size: buttonSize,
-                  child: Icon(Icons.ac_unit, color: colors.icon, size: buttonSize * 0.5),
+                  child: SvgPicture.asset('assets/icons/x.svg', width: buttonSize * 0.4),
                   onPressed: () => game.clearCell(),
                 ),
               ),
@@ -211,7 +211,7 @@ class SudokuHeader extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               SvgPicture.asset('assets/icons/back.svg', semanticsLabel: 'Back to menu'),
-              Clock(size: height / 3),
+              Clock(size: height * 0.3),
             ],
           ),
         ),
@@ -241,16 +241,31 @@ class GameActions extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Button(text: 'Restart', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+            Button(
+                text: 'Restart',
+                size: buttonSize,
+                child: SvgPicture.asset(
+                  'assets/icons/board.svg',
+                  width: buttonSize * 0.45,
+                )),
             SizedBox(width: spacing),
-            Button(text: 'Check', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+            Button(
+                text: 'Check',
+                size: buttonSize,
+                child: SvgPicture.asset(
+                  'assets/icons/check.svg',
+                  width: buttonSize * 0.45,
+                )),
             SizedBox(width: spacing),
             Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
             SizedBox(width: spacing),
             Button(
               text: 'Pencil',
               size: buttonSize,
-              child: Icon(Icons.undo, color: colors.icon),
+              child: SvgPicture.asset(
+                'assets/icons/pencil.svg',
+                width: buttonSize * 0.57,
+              ),
               isActive: game.isPenciling,
               onPressed: () => game.togglePencil(),
             ),
@@ -258,7 +273,10 @@ class GameActions extends StatelessWidget {
             Button(
               text: 'Undo',
               size: buttonSize,
-              child: Icon(Icons.undo, color: colors.icon),
+              child: SvgPicture.asset(
+                'assets/icons/undo.svg',
+                width: buttonSize * 0.45,
+              ),
               onPressed: () => game.undo(),
             ),
           ],
@@ -301,7 +319,7 @@ class _ClockState extends State<Clock> {
       if (mins > 0) mins,
       secs,
     ];
-    return AppText('${time.join(':')}s');
+    return AppText('${time.join(':')}s', size: widget.size);
   }
 
   @override
