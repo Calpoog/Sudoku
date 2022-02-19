@@ -321,14 +321,11 @@ class _ClockState extends State<Clock> {
   @override
   Widget build(BuildContext context) {
     final hours = (seconds / 3600).floor();
+    final hasHours = hours > 0;
     final mins = (seconds / 60).floor();
+    final hasMins = mins > 0;
     final secs = seconds % 60;
-    final time = [
-      if (hours > 0) hours,
-      if (mins > 0) mins,
-      secs,
-    ];
-    return AppText('${time.join(':')}s', size: widget.size);
+    return AppText('${hasHours ? '${mins}h ' : ''}${hasMins ? '${mins}m ' : ''}${secs}s', size: widget.size);
   }
 
   @override
