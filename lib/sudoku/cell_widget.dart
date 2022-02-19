@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../common/colors.dart';
@@ -30,9 +31,15 @@ class CellWidget extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: () => game.select(cell),
-      onLongPress: () => game.clearCell(cell),
-      onDoubleTap: () => game.clearCell(cell),
+      onTapDown: (_) {
+        HapticFeedback.lightImpact();
+        game.select(cell);
+      },
+      onLongPress: () {
+        HapticFeedback.heavyImpact();
+        game.clearCell(cell);
+      },
+      // onDoubleTap: () => game.clearCell(cell),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -74,6 +81,7 @@ class CellWidget extends StatelessWidget {
                         .toList(),
                   ),
                 ),
+          // Positioned(child: child)
         ],
       ),
     );

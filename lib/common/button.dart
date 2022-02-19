@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/game.dart';
@@ -13,7 +14,7 @@ class Button extends StatelessWidget {
     required this.size,
     required this.child,
     this.isActive = false,
-    this.onPressed,
+    required this.onPressed,
     this.onLongPress,
     this.text,
   }) : super(key: key);
@@ -22,7 +23,7 @@ class Button extends StatelessWidget {
   final Widget child;
   final bool isActive;
   final String? text;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
   final VoidCallback? onLongPress;
 
   @override
@@ -41,7 +42,10 @@ class Button extends StatelessWidget {
         child: InkWell(
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
           splashColor: colors.accent,
-          onTap: onPressed,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onPressed();
+          },
           onLongPress: onLongPress,
           child: AspectRatio(
             aspectRatio: 1,

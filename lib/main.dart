@@ -242,22 +242,31 @@ class GameActions extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Button(
-                text: 'Restart',
-                size: buttonSize,
-                child: SvgPicture.asset(
-                  'assets/icons/board.svg',
-                  width: buttonSize * 0.45,
-                )),
+              text: 'Restart',
+              size: buttonSize,
+              child: SvgPicture.asset(
+                'assets/icons/board.svg',
+                width: buttonSize * 0.45,
+              ),
+              onPressed: () {},
+            ),
             SizedBox(width: spacing),
             Button(
-                text: 'Check',
-                size: buttonSize,
-                child: SvgPicture.asset(
-                  'assets/icons/check.svg',
-                  width: buttonSize * 0.45,
-                )),
+              text: 'Check',
+              size: buttonSize,
+              child: SvgPicture.asset(
+                'assets/icons/check.svg',
+                width: buttonSize * 0.45,
+              ),
+              onPressed: () {},
+            ),
             SizedBox(width: spacing),
-            Button(text: 'Multi', size: buttonSize, child: Icon(Icons.undo, color: colors.icon)),
+            Button(
+              text: 'Multi',
+              size: buttonSize,
+              child: Icon(Icons.undo, color: colors.icon),
+              onPressed: () {},
+            ),
             SizedBox(width: spacing),
             Button(
               text: 'Pencil',
