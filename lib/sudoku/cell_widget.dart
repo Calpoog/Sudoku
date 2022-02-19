@@ -58,7 +58,7 @@ class CellWidget extends StatelessWidget {
                 )
               : Container(
                   alignment: Alignment.center,
-                  padding: EdgeInsets.symmetric(horizontal: size * 0.17),
+                  width: size * 0.66,
                   child: Wrap(
                     children: cell.candidates
                         .map(
