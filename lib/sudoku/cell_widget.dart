@@ -46,9 +46,10 @@ class CellWidget extends StatelessWidget {
           SizedBox(width: size, height: size),
           // indicator
           AnimatedContainer(
+            curve: Curves.easeInOut,
             duration: const Duration(milliseconds: 200),
-            width: size * (hasIndicator ? 0.8 : 0.2),
-            height: size * (hasIndicator ? 0.8 : 0.2),
+            width: size * (hasIndicator ? 0.8 : 0.4),
+            height: size * (hasIndicator ? 0.8 : 0.4),
             decoration: BoxDecoration(
               color: indicatorColor,
               borderRadius: const BorderRadius.all(Radius.circular(6.0)),
