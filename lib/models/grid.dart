@@ -108,7 +108,7 @@ class Grid {
   // }
 
   factory Grid.fromJSON(Map<String, dynamic> json, {int size = 3}) {
-    return Grid._internal(cells: _deserealizeCells(json['grid']), size: size);
+    return Grid._internal(cells: _deserealizeCells(json['cells']), size: size);
   }
 
   bool get isValid {
@@ -139,7 +139,7 @@ class Grid {
   }
 
   Map<String, dynamic> toJSON() {
-    Map<String, dynamic> json = {'grid': _serializeCells()};
+    Map<String, dynamic> json = {'cells': _serializeCells()};
 
     if (thermos.isNotEmpty) {
       json['thermos'] = thermos.map(
