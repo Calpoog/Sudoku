@@ -42,7 +42,7 @@ class SudokuGame extends ChangeNotifier {
       activeDigit = keepActive ? digit : 0;
       if (selectedCell != null && !selectedCell!.isClue) {
         if (isPenciling) {
-          _toggleCandidate(digit);
+          if (selectedCell!.digit == 0) _toggleCandidate(digit);
         } else {
           _setDigit(selectedCell!, digit);
         }
@@ -80,6 +80,7 @@ class SudokuGame extends ChangeNotifier {
   }
 
   void _setDigit(Cell cell, int digit) {
+    // TODO: setting that clears set digit from candidates that would be eliminated (in box/row/col)
     pushHistory(cell);
     cell.digit = digit;
     // debugPrint('Valid: ${grid.isValid}');
