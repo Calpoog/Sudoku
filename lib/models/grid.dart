@@ -162,21 +162,29 @@ class Grid {
     Map<String, dynamic> json = {'cells': _serializeCells()};
 
     if (thermos.isNotEmpty) {
-      json['thermos'] = thermos
-          .map(
-            (thermo) => thermo.cells.fold<List<int>>(
-              [],
-              (flattened, cell) {
-                return flattened
-                  ..add(cell.col)
-                  ..add(cell.row);
-              },
-            ),
-          )
-          .toList();
+      json['thermos'] = _simplifyLines(thermos);
     }
 
     return json;
+  }
+
+  /// Takes Line and simplifies it to a list of integers, where
+  /// the list is a flattened alternating col,row pairs.
+  List<List<int>> _simplifyLines(List<Line> lines) {
+    return lines.map(_simplifyLine).toList();
+  }
+
+  /// Takes Line and simplifies it to a list of integers, where
+  /// the list is a flattened alternating col,row pairs.
+  List<int> _simplifyLine(Line line) {
+    return line.cells.fold<List<int>>(
+      [],
+      (flattened, cell) {
+        return flattened
+          ..add(cell.col)
+          ..add(cell.row);
+      },
+    ).toList();
   }
 
   String _serializeCells() {
