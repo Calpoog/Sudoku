@@ -6,6 +6,8 @@
 //  col: column that a cell sits on in a box
 import 'dart:collection';
 
+import 'grid.dart';
+
 class Cell {
   int _digit;
   bool isClue;
@@ -13,13 +15,17 @@ class Cell {
   final int row;
   final int col;
 
-  Cell({required this.row, required this.col, int digit = 0})
-      : _digit = digit,
-        isClue = digit != 0;
+  /// The lines (thermos, german whisper, etc.) this cell belongs to
+  final List<Line> lines = [];
+
+  Cell({required this.row, required this.col, int digit = 0, List<int>? candidates, this.isClue = false})
+      : _digit = digit {
+    if (candidates != null) this.candidates.addAll(candidates);
+  }
 
   @override
   String toString() {
-    return 'Cell(row: $row, col: $col, digit: $digit)';
+    return 'Cell(row: $row, col: $col, digit: $digit, isClue: $isClue, candidates: $candidates)';
   }
 
   clear() {
@@ -41,10 +47,13 @@ class Cell {
   ///
   /// Used in creating a copy of a [Cell] for history.
   Cell copyWith({int? digit, List<int>? candidates}) {
-    final newCell = Cell(row: row, col: col, digit: digit ?? this.digit);
-    newCell.isClue = isClue;
-    newCell.candidates.addAll(candidates ?? this.candidates);
-    return newCell;
+    return Cell(
+      row: row,
+      col: col,
+      digit: digit ?? this.digit,
+      candidates: candidates,
+      isClue: isClue,
+    );
   }
 
   /// Merges in the digit and candidates from another [Cell].

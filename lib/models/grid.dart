@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import 'box.dart';
 import 'dart:math';
 import 'package:collection/collection.dart';
@@ -8,7 +10,11 @@ class Line {
   final List<Cell> cells;
   final bool Function(List<Cell> cells) validator;
 
-  Line({required this.cells, required this.validator});
+  Line({required this.cells, required this.validator}) {
+    for (var cell in cells) {
+      cell.lines.add(this);
+    }
+  }
 
   bool isValid() {
     return validator(cells);
@@ -34,23 +40,19 @@ class Grid {
 
   // TODO: other List<Line> for thermos, cages, etc. But keep them separate since
   // the UI will need to understand which is which for drawing purposes.
+  final List<Line> thermos = [];
 
   /// A list of boxes referencing the same Cell objects in `cells`
   late final List<Box> boxes;
 
-  Grid._internal({required List<int> digits, required this.size}) {
+  // TODO: The solution should be maintained separately so checking correctness of
+  // individual cells for the baby bois who turn on correct-indicator mode
+  Grid._internal({
+    required this.cells,
+    List<List<Cell>>? thermos,
+    required this.size,
+  }) {
     final int count = pow(size, 2).toInt();
-
-    // Create total cells list.
-    cells = digits
-        .mapIndexed(
-          (index, digit) => Cell(
-            col: index % count,
-            row: (index / count).floor(),
-            digit: digit,
-          ),
-        )
-        .toList();
 
     // Generate grid boxes, passing the total list of cells and allowing the Box
     // to pull it's own is the most effective
@@ -95,15 +97,18 @@ class Grid {
       ),
     );
 
-    // TODO: thermos and cages will also be Line lists
+    if (thermos != null) {
+      this.thermos.addAll(thermos.map((cells) => Line(cells: cells, validator: _increasingValidator)));
+    }
   }
 
-  factory Grid.empty({int size = 3}) {
-    return Grid._internal(digits: List.filled(pow(size, size * 2).toInt(), 0), size: size);
-  }
+  // Ignore for now, this will only really be relevant when it comes to the sudoku-maker
+  // factory Grid.empty({int size = 3}) {
+  //   return Grid._internal(digits: List.filled(pow(size, size * 2).toInt(), 0), size: size);
+  // }
 
-  factory Grid.fromString(String string, {int size = 3}) {
-    return Grid._internal(digits: string.split('').map((d) => int.parse(d)).toList(), size: size);
+  factory Grid.fromJSON(Map<String, dynamic> json, {int size = 3}) {
+    return Grid._internal(cells: _deserealizeCells(json['grid']), size: size);
   }
 
   bool get isValid {
@@ -119,11 +124,13 @@ class Grid {
 
   /// Checks only the validity of a [Cell] based on the rows/cols/boxes/thermos/cages it is in
   bool isCellValid(Cell cell) {
-    // TODO: we'd have to figure out which thermos/cages it's in to check only the ones that matter
-    if (!rows[cell.row].isValid() || !cols[cell.col].isValid()) return false;
     final boxX = (cell.col / size).floor();
     final boxY = (cell.row / size).floor();
     if (!boxes[boxY * size + boxX].isValid) return false;
+    // Cells store all lines they belong to (row, col, thermos, etc.)
+    for (var line in cell.lines) {
+      if (!line.isValid()) return false;
+    }
     return true;
   }
 
@@ -131,48 +138,30 @@ class Grid {
     cells[cell.row * size * size + cell.col].merge(cell);
   }
 
-  String serialize(){
-    String gridState = '';
-    String delimiter = ',';
-    for (int i = 0; i <  cells.length; i++){
-      i == cells.length -1 ? delimiter = '': delimiter = ',';
-      if (cells[i].digit == 0){
-        if (cells[i].candidates.length > 1){
-          gridState+=cells[i].candidates.toString().replaceAll(', ', '')+delimiter;
-        } else {
-          gridState+='0'+delimiter;
-        }
-      } else {
-        if (cells[i].isClue){
-          gridState+='c';
-        }
-        gridState+=cells[i].digit.toString()+delimiter;
-      }
+  Map<String, dynamic> toJSON() {
+    Map<String, dynamic> json = {'grid': _serializeCells()};
+
+    if (thermos.isNotEmpty) {
+      json['thermos'] = thermos.map(
+        (thermo) => thermo.cells.fold<List<int>>(
+          [],
+          (flattened, cell) {
+            return flattened
+              ..add(cell.col)
+              ..add(cell.row);
+          },
+        ),
+      );
     }
-    return gridState;
+
+    return json;
   }
 
-  static Grid deSerialize(String grid){
-    // Assuming size 3 for now
-    final int count = pow(3, 2).toInt();
-    final Grid base = Grid.empty();
-    List<String> cellValues = grid.split(',');
-    for (int i = 0; i < cellValues.length; i++){
-      bool wasClue = false;
-      if(cellValues[i].contains('c')){
-        wasClue = true;
-        cellValues[i] = cellValues[i].replaceAll('c', '');
-      }
-      // Somehow simultaneously very clean and very messy...
-      Cell index = base.cells[i].copyWith(
-          digit: RegExp(r'^[0-9]$').hasMatch(cellValues[i]) ? int.parse(cellValues[i]) : 0,
-          candidates: RegExp(r'^{[0-9]+}$').hasMatch(cellValues[i]) ?
-          cellValues[i].replaceAll('{', '').replaceAll('}', '').split('').map((d) => int.parse(d)).toList() : []
-      );
-      index.isClue = wasClue;
-      base.updateCell(index);
-    }
-    return base;
+  String _serializeCells() {
+    return cells.map((cell) {
+      if (cell.digit == 0 && cell.candidates.isNotEmpty) return '[${cell.candidates.join('')}]';
+      return '${cell.isClue ? 'c' : ''}${cell.digit}';
+    }).join('');
   }
 
   @override
@@ -192,7 +181,46 @@ class Grid {
   }
 }
 
+// This outside allows the factory constructor access to them to deserealize and pass to internal
+// constructor
+
+List<Cell> _deserealizeCells(String strCells) {
+  return RegExp(r'\[(\d+)\]|(c?\d)').allMatches(strCells).mapIndexed((index, match) {
+    final candidates = match.group(1);
+    var digit = match.group(2);
+    // TODO: Still assuming 3x3
+    final col = index % 9;
+    final row = (index / 9).floor();
+
+    if (candidates != null) {
+      return Cell(
+        row: row,
+        col: col,
+        candidates: candidates.split('').map((c) => int.parse(c)).toList(),
+      );
+    } else {
+      var isClue = false;
+      if (digit![0] == 'c') {
+        isClue = true;
+        digit = digit[1];
+      }
+      return Cell(row: row, col: col, digit: int.parse(digit), isClue: isClue);
+    }
+  }).toList();
+}
+
 bool _noDupeValidator(List<Cell> cells) {
   final digits = cells.map((c) => c.digit).where((d) => d > 0);
   return digits.length == Set.from(digits).length;
+}
+
+// This also insures no dupes just implicitly
+bool _increasingValidator(List<Cell> cells) {
+  final nonEmptyCells = cells.where((cell) => cell.digit > 0).toList();
+  for (int i = 0; i < nonEmptyCells.length - 1; i++) {
+    if (nonEmptyCells[i].digit >= nonEmptyCells[i + 1].digit) {
+      return false;
+    }
+  }
+  return true;
 }

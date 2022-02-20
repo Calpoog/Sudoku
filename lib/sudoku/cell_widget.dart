@@ -25,7 +25,7 @@ class CellWidget extends StatelessWidget {
         : isMatch
             ? colors.indicatorDark
             : cell.isClue
-                ? colors.indicatorLight
+                ? colors.indicatorLight.withOpacity(0.5)
                 : Colors.transparent;
     final hasIndicator = indicatorColor != Colors.transparent;
 

@@ -1,18 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+import '../utils/saves.dart';
 import 'cell.dart';
 import 'grid.dart';
 
 class SudokuGame extends ChangeNotifier {
-  Grid grid = Grid.fromString('004300209005009001070060043006002087190007400050083000600000105003508690042910300');
+  final Grid grid;
   Cell? selectedCell;
   int activeDigit = 0;
   bool isPenciling = false;
   // I'm adding titles to games, but we don't need to keep this. I can change
   //   loadGame to return a Map<String, SudokuGame> instead, we can decide later
-  String title = '';
+  final String title;
+  final String id;
+  final DateTime? lastPlayed;
 
   // History is a list of copied cells (before its state is updated)
   final List<Cell> history = [];
+
+  SudokuGame._internal({this.title = '', required this.grid, this.lastPlayed, required this.id});
+
+  factory SudokuGame.fresh() {
+    return SudokuGame._internal(
+      title: DateTime.now().toString(),
+      grid: Grid.fromJSON({
+        'grid':
+            '0[1234]c4c301c20c900c500c900c10c700c600c4c300c600c20c8c7c1c9000c7c4000c500c8c3000c600000c10c500c3c50c8c6c900c4c2c9c10c300'
+      }),
+      id: const Uuid().v4(),
+    );
+  }
 
   void togglePencil() {
     isPenciling = !isPenciling;
@@ -83,10 +100,32 @@ class SudokuGame extends ChangeNotifier {
     // TODO: setting that clears set digit from candidates that would be eliminated (in box/row/col)
     pushHistory(cell);
     cell.digit = digit;
-    // debugPrint('Valid: ${grid.isValid}');
+    debugPrint('Valid: ${grid.isValid}');
+    final json = grid.toJSON();
+    debugPrint(json.toString());
   }
 
   void pushHistory(Cell cell) {
     history.add(cell.copyWith());
+    ManageSaves.saveGame(this);
+  }
+
+  Map<String, dynamic> toJSON() {
+    final int currentTime = DateTime.now().millisecondsSinceEpoch;
+    return {
+      'lastPlayed': currentTime,
+      'title': title,
+      'grid': grid.toJSON(),
+      'id': id,
+    };
+  }
+
+  factory SudokuGame.fromJSON(Map<String, dynamic> json) {
+    return SudokuGame._internal(
+      grid: Grid.fromJSON(json['grid']),
+      title: json['title'],
+      lastPlayed: DateTime.fromMillisecondsSinceEpoch(json['lastPlayed']),
+      id: json['id'],
+    );
   }
 }

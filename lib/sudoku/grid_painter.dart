@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -37,6 +39,10 @@ class GridCustomPainter extends CustomPainter {
     return i * (cellSize + kSubLineWidth) - kSubLineWidth / 2 + mainLineOffset;
   }
 
+  Offset _getCellCenter(Cell cell) {
+    return Offset(_getOffset(cell.col) + cellSize / 2, _getOffset(cell.row) + cellSize / 2);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final boardSize = size.width;
@@ -47,6 +53,21 @@ class GridCustomPainter extends CustomPainter {
     if (selectedCell != null) {
       canvas.drawRect(Rect.fromLTWH(_getOffset(selectedCell!.col), 0, cellSize, boardSize), paint);
       canvas.drawRect(Rect.fromLTWH(0, _getOffset(selectedCell!.row), boardSize, cellSize), paint);
+    }
+
+    paint = Paint()
+      ..strokeWidth = cellSize / 4
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..color = colors.indicatorLight;
+
+    for (var thermo in grid.thermos) {
+      canvas.drawCircle(_getCellCenter(thermo.cells.first), cellSize / 3.5, paint);
+      canvas.drawPoints(
+        PointMode.polygon,
+        thermo.cells.map((cell) => _getCellCenter(cell)).toList(),
+        paint,
+      );
     }
 
     paint = Paint()
