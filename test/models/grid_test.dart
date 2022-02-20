@@ -11,7 +11,7 @@ void main() {
     final grid = Grid.fromJSON({
       'cells': gridString,
       'thermos': [
-        [0, 0, 1, 1, 0, 2],
+        [0, 0, 1, 1, 2, 0],
         [0, 4, 6, 4]
       ]
     });
@@ -88,6 +88,14 @@ void main() {
       expect(grid.isValid, true);
     });
 
+    test('is invalid when a thermo is invalid', () {
+      grid.cells[0].digit = 8;
+      expect(grid.thermos[0].isValid, false, reason: 'Thermo should be invalid');
+      expect(grid.isValid, false, reason: 'Grid should be invalid');
+      grid.cells[0].digit = 0;
+      expect(grid.isValid, true);
+    });
+
     test('can test the validity of individual cells', () {
       final cell = grid.cells[0];
       expect(grid.isCellValid(cell), true);
@@ -118,9 +126,9 @@ void main() {
       expect(c.row, 0);
       expect(c.digit, 0);
       c = grid.thermos.first.cells[2];
-      expect(c.col, 0);
-      expect(c.row, 2);
-      expect(c.digit, 0);
+      expect(c.col, 2);
+      expect(c.row, 0);
+      expect(c.digit, 4);
       c = grid.thermos[1].cells[1];
       expect(c.col, 6);
       expect(c.row, 4);

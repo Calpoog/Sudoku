@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import 'box.dart';
 import 'dart:math';
 import 'package:collection/collection.dart';
@@ -16,7 +14,7 @@ class Line {
     }
   }
 
-  bool isValid() {
+  bool get isValid {
     return validator(cells);
   }
 }
@@ -98,19 +96,7 @@ class Grid {
     );
 
     if (thermos != null) {
-      this.thermos.addAll(
-        thermos.map(
-          (pairs) {
-            final List<Cell> cells = [];
-            for (int i = 0; i < pairs.length; i += 2) {
-              final col = pairs[i];
-              final row = pairs[i + 1];
-              cells.add(_getCellFromPosition(row, col));
-            }
-            return Line(cells: cells, validator: _increasingValidator);
-          },
-        ),
-      );
+      this.thermos.addAll(_unsimplifyLines(thermos));
     }
   }
 
@@ -132,9 +118,12 @@ class Grid {
   }
 
   bool get isValid {
-    final lines = List.from(rows)..addAll(cols); // ..addAll(thermos)..addALl(cages)
+    final List<Line> lines = List.from(rows)
+      ..addAll(cols)
+      ..addAll(thermos); //..addAll(cages)
+
     for (var line in lines) {
-      if (!line.isValid()) return false;
+      if (!line.isValid) return false;
     }
     for (var box in boxes) {
       if (!box.isValid) return false;
@@ -149,7 +138,7 @@ class Grid {
     if (!boxes[boxY * size + boxX].isValid) return false;
     // Cells store all lines they belong to (row, col, thermos, etc.)
     for (var line in cell.lines) {
-      if (!line.isValid()) return false;
+      if (!line.isValid) return false;
     }
     return true;
   }
@@ -172,6 +161,20 @@ class Grid {
   /// the list is a flattened alternating col,row pairs.
   List<List<int>> _simplifyLines(List<Line> lines) {
     return lines.map(_simplifyLine).toList();
+  }
+
+  List<Line> _unsimplifyLines(List<List<int>> lines) {
+    return lines.map(
+      (pairs) {
+        final List<Cell> cells = [];
+        for (int i = 0; i < pairs.length; i += 2) {
+          final col = pairs[i];
+          final row = pairs[i + 1];
+          cells.add(_getCellFromPosition(row, col));
+        }
+        return Line(cells: cells, validator: _increasingValidator);
+      },
+    ).toList();
   }
 
   /// Takes Line and simplifies it to a list of integers, where
