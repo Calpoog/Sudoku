@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sudoku/models/cell.dart';
 
 import 'package:sudoku/models/grid.dart';
 
@@ -7,7 +8,13 @@ const gridString =
 
 void main() {
   group('Grid', () {
-    final grid = Grid.fromJSON({'cells': gridString});
+    final grid = Grid.fromJSON({
+      'cells': gridString,
+      'thermos': [
+        [0, 0, 1, 1, 0, 2],
+        [0, 4, 6, 4]
+      ]
+    });
     final currentCells = gridString.replaceAll(RegExp(r'\[\d+\]'), '0').replaceAll('c', '');
 
     test('has the right number of contents', () {
@@ -98,8 +105,26 @@ void main() {
     });
 
     test('serializes correctly', () {
-      print(grid.toString());
-      expect(grid.toJSON()['cells'], equals(gridString));
+      final json = grid.toJSON();
+      expect(json['cells'], equals(gridString));
+      expect(json['thermos'].length, 2);
+      expect(json['thermos'][0].length, 6);
+      expect(json['thermos'][1].length, 4);
+    });
+
+    test('creates thermos from json', () {
+      Cell c = grid.thermos.first.cells.first;
+      expect(c.col, 0);
+      expect(c.row, 0);
+      expect(c.digit, 0);
+      c = grid.thermos.first.cells[2];
+      expect(c.col, 0);
+      expect(c.row, 2);
+      expect(c.digit, 0);
+      c = grid.thermos[1].cells[1];
+      expect(c.col, 6);
+      expect(c.row, 4);
+      expect(c.digit, 4);
     });
   });
 }

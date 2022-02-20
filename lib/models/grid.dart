@@ -49,7 +49,7 @@ class Grid {
   // individual cells for the baby bois who turn on correct-indicator mode
   Grid._internal({
     required this.cells,
-    List<List<Cell>>? thermos,
+    List<List<int>>? thermos,
     required this.size,
   }) {
     final int count = pow(size, 2).toInt();
@@ -98,8 +98,24 @@ class Grid {
     );
 
     if (thermos != null) {
-      this.thermos.addAll(thermos.map((cells) => Line(cells: cells, validator: _increasingValidator)));
+      this.thermos.addAll(
+        thermos.map(
+          (pairs) {
+            final List<Cell> cells = [];
+            for (int i = 0; i < pairs.length; i += 2) {
+              final col = pairs[i];
+              final row = pairs[i + 1];
+              cells.add(_getCellFromPosition(row, col));
+            }
+            return Line(cells: cells, validator: _increasingValidator);
+          },
+        ),
+      );
     }
+  }
+
+  _getCellFromPosition(int row, int col) {
+    return cells[row * size * size + col];
   }
 
   // Ignore for now, this will only really be relevant when it comes to the sudoku-maker
@@ -108,7 +124,11 @@ class Grid {
   // }
 
   factory Grid.fromJSON(Map<String, dynamic> json, {int size = 3}) {
-    return Grid._internal(cells: _deserealizeCells(json['cells']), size: size);
+    return Grid._internal(
+      cells: _deserealizeCells(json['cells']),
+      size: size,
+      thermos: json['thermos'],
+    );
   }
 
   bool get isValid {
@@ -142,16 +162,18 @@ class Grid {
     Map<String, dynamic> json = {'cells': _serializeCells()};
 
     if (thermos.isNotEmpty) {
-      json['thermos'] = thermos.map(
-        (thermo) => thermo.cells.fold<List<int>>(
-          [],
-          (flattened, cell) {
-            return flattened
-              ..add(cell.col)
-              ..add(cell.row);
-          },
-        ),
-      );
+      json['thermos'] = thermos
+          .map(
+            (thermo) => thermo.cells.fold<List<int>>(
+              [],
+              (flattened, cell) {
+                return flattened
+                  ..add(cell.col)
+                  ..add(cell.row);
+              },
+            ),
+          )
+          .toList();
     }
 
     return json;
