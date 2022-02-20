@@ -92,6 +92,7 @@ void main() {
       grid.cells[0].digit = 8;
       expect(grid.thermos[0].isValid, false, reason: 'Thermo should be invalid');
       expect(grid.isValid, false, reason: 'Grid should be invalid');
+      expect(grid.isCellValid(grid.cells[0]), false);
       grid.cells[0].digit = 0;
       expect(grid.isValid, true);
     });
