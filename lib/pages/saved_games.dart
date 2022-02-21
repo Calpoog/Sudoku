@@ -85,15 +85,16 @@ class SavedGameTile extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: const [
-                      AppText('LAST PLAYED'),
-                      AppText('TIME'),
+                      AppText('LAST PLAYED', weight: FontWeight.bold),
+                      AppText('TIME', weight: FontWeight.bold),
                     ],
                   ),
+                  const SizedBox(height: 5.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       AppText(DateFormat.MEd().format(game.lastPlayed!)),
-                      const AppText('10'),
+                      AppText(game.timer.currentDuration.inSeconds.toString()),
                     ],
                   ),
                 ],

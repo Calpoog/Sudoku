@@ -23,12 +23,15 @@ class Sudoku extends StatefulWidget {
 }
 
 class _SudokuState extends State<Sudoku> {
-  Future<SudokuGame>? _future;
+  late Future<SudokuGame> _future;
 
   @override
   void initState() {
     super.initState();
     _fetch();
+    _future.then((game) {
+      game.timer.start();
+    });
   }
 
   @override
@@ -178,5 +181,11 @@ class _SudokuState extends State<Sudoku> {
       ),
       if (extra != null) extra,
     ]);
+  }
+
+  @override
+  void dispose() {
+    _future.then((game) => game.timer.stop());
+    super.dispose();
   }
 }

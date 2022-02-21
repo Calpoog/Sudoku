@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../pages/sudoku/clock.dart';
 import '../utils/saves.dart';
 import 'cell.dart';
 import 'grid.dart';
@@ -14,11 +17,20 @@ class SudokuGame extends ChangeNotifier {
   final String title;
   final String id;
   final DateTime? lastPlayed;
+  late final PlayTimer timer;
 
   // History is a list of copied cells (before its state is updated)
   final List<Cell> history = [];
 
-  SudokuGame._internal({this.title = '', required this.grid, this.lastPlayed, required this.id});
+  SudokuGame._internal({
+    this.title = '',
+    required this.grid,
+    this.lastPlayed,
+    required this.id,
+    int initialSeconds = 0,
+  }) {
+    timer = PlayTimer(initialSeconds);
+  }
 
   factory SudokuGame.fresh() {
     return SudokuGame._internal(
@@ -29,6 +41,14 @@ class SudokuGame extends ChangeNotifier {
       }),
       id: const Uuid().v4(),
     );
+  }
+
+  void resumeTimer() {
+    timer.start();
+  }
+
+  void stopTimer() {
+    timer.stop();
   }
 
   void togglePencil() {
@@ -117,6 +137,7 @@ class SudokuGame extends ChangeNotifier {
       'title': title,
       'grid': grid.toJSON(),
       'id': id,
+      'playTime': timer.currentDuration.inSeconds,
     };
   }
 
@@ -126,6 +147,7 @@ class SudokuGame extends ChangeNotifier {
       title: json['title'],
       lastPlayed: DateTime.fromMillisecondsSinceEpoch(json['lastPlayed']),
       id: json['id'],
+      initialSeconds: json['playTime'],
     );
   }
 

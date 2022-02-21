@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../common/text.dart';
+import '../../models/game.dart';
 
 class Clock extends StatefulWidget {
   const Clock({Key? key, required this.size}) : super(key: key);
@@ -10,25 +12,24 @@ class Clock extends StatefulWidget {
   final double size;
 
   @override
-  _ClockState createState() => _ClockState();
+  State<Clock> createState() => _ClockState();
 }
 
 class _ClockState extends State<Clock> {
-  late final Timer timer;
-  int seconds = 0;
+  late PlayTimer timer;
 
   @override
   void initState() {
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        seconds++;
-      });
-    });
     super.initState();
+    timer = context.read<SudokuGame>().timer;
+    timer.addListener(_listener);
   }
+
+  void _listener() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
+    final seconds = timer.currentDuration.inSeconds;
     final hours = (seconds / 3600).floor();
     final hasHours = hours > 0;
     final mins = (seconds / 60).floor();
@@ -39,7 +40,51 @@ class _ClockState extends State<Clock> {
 
   @override
   void dispose() {
-    timer.cancel();
+    timer.removeListener(_listener);
     super.dispose();
+  }
+}
+
+class PlayTimer extends ChangeNotifier {
+  final Stopwatch _watch = Stopwatch();
+  final int initialSeconds;
+  Timer? _timer;
+
+  Duration get currentDuration => _currentDuration + Duration(seconds: initialSeconds);
+  Duration _currentDuration = Duration.zero;
+
+  bool get isRunning => _timer != null;
+
+  PlayTimer(this.initialSeconds);
+
+  void _onTick(Timer timer) {
+    _currentDuration = _watch.elapsed;
+    notifyListeners();
+  }
+
+  void start() {
+    if (_timer != null) return;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), _onTick);
+    _watch.start();
+
+    notifyListeners();
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+    _watch.stop();
+    _currentDuration = _watch.elapsed;
+
+    notifyListeners();
+  }
+
+  void reset() {
+    stop();
+    _watch.reset();
+    _currentDuration = Duration.zero;
+
+    notifyListeners();
   }
 }
