@@ -22,13 +22,19 @@ class Sudoku extends StatefulWidget {
   State<Sudoku> createState() => _SudokuState();
 }
 
-class _SudokuState extends State<Sudoku> {
+class _SudokuState extends State<Sudoku> with SingleTickerProviderStateMixin {
   late Future<SudokuGame> _future;
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(seconds: 1),
+    vsync: this,
+  );
+  late final Animation<double> _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
 
   @override
   void initState() {
     super.initState();
     _fetch();
+    _controller.forward();
     _future.then((game) {
       game.timer.start();
     });
@@ -115,7 +121,7 @@ class _SudokuState extends State<Sudoku> {
     );
   }
 
-  Column _buildGame(
+  Widget _buildGame(
     double spacing,
     double preferredGridSize,
     SudokuGame game,
@@ -124,47 +130,55 @@ class _SudokuState extends State<Sudoku> {
     double buttonSize,
     double overflowSpacing,
   ) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SudokuHeader(
-          height: headerHeight,
-          contentWidth: preferredGridSize,
+    return AnimatedBuilder(
+        animation: _animation,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: preferredGridSize, maxHeight: preferredGridSize),
+          child: GridWidget(game.grid),
         ),
-        SizedBox(height: overflowSpacing),
-        Center(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: preferredGridSize, maxHeight: preferredGridSize),
-            child: GridWidget(game.grid),
-          ),
-        ),
-        SizedBox(height: spacing + overflowSpacing.clamp(0, 100.0)),
-        Container(
-          color: colors.surface,
-          alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(vertical: spacing),
-          child: Column(
+        builder: (context, child) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildDigitButtonRow(buttonSize, spacing, 0, 5),
-              SizedBox(height: spacing),
-              _buildDigitButtonRow(
-                buttonSize,
-                spacing,
-                5,
-                4,
-                Button(
-                  size: buttonSize,
-                  child: SvgPicture.asset('assets/icons/x.svg', width: buttonSize * 0.4),
-                  onPressed: () => game.clearCell(),
+              SudokuHeader(
+                height: headerHeight,
+                contentWidth: preferredGridSize,
+              ),
+              SizedBox(height: overflowSpacing),
+              Center(
+                child: Transform.translate(
+                  offset: Offset(0, 50 * (1 - _animation.value)),
+                  child: Opacity(opacity: _animation.value, child: child),
                 ),
               ),
+              SizedBox(height: spacing + overflowSpacing.clamp(0, 100.0)),
+              Container(
+                color: colors.surface,
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(vertical: spacing),
+                child: Column(
+                  children: [
+                    _buildDigitButtonRow(buttonSize, spacing, 0, 5),
+                    SizedBox(height: spacing),
+                    _buildDigitButtonRow(
+                      buttonSize,
+                      spacing,
+                      5,
+                      4,
+                      Button(
+                        size: buttonSize,
+                        child: SvgPicture.asset('assets/icons/x.svg', width: buttonSize * 0.4),
+                        onPressed: () => game.clearCell(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GameActions(buttonSize: buttonSize, spacing: spacing),
             ],
-          ),
-        ),
-        GameActions(buttonSize: buttonSize, spacing: spacing),
-      ],
-    );
+          );
+        });
   }
 
   Widget _buildDigitButtonRow(double buttonSize, double spacing, int start, int length, [Widget? extra]) {
