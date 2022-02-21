@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../common/colors.dart';
-import '../models/game.dart';
 import '../models/grid.dart';
 import 'box_widget.dart';
 import 'constants.dart';
 import 'grid_painter.dart';
 
 class GridWidget extends StatelessWidget {
-  const GridWidget(this.grid, {Key? key}) : super(key: key);
+  const GridWidget(this.grid, {Key? key, this.isPreview = false}) : super(key: key);
 
   final Grid grid;
+  final bool isPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,11 @@ class GridWidget extends StatelessWidget {
                     (box) => Positioned(
                       left: box.col * boxOffset,
                       top: box.row * boxOffset,
-                      child: BoxWidget(box: box, cellSize: cellSize),
+                      child: BoxWidget(
+                        box: box,
+                        cellSize: cellSize,
+                        isPreview: isPreview,
+                      ),
                     ),
                   )
                   .toList(),
