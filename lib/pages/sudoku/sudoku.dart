@@ -8,67 +8,107 @@ import '../../common/spacing.dart';
 import '../../models/game.dart';
 import '../../sudoku/constants.dart';
 import '../../sudoku/grid_widget.dart';
+import '../../utils/saves.dart';
 import 'actions.dart';
 import 'header.dart';
 
-class Sudoku extends StatelessWidget {
-  const Sudoku({Key? key}) : super(key: key);
+class Sudoku extends StatefulWidget {
+  const Sudoku({Key? key, required this.id, this.game}) : super(key: key);
 
-  static const routeName = '/sudoku';
+  final String id;
+  final SudokuGame? game;
+
+  @override
+  State<Sudoku> createState() => _SudokuState();
+}
+
+class _SudokuState extends State<Sudoku> {
+  Future<SudokuGame>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  @override
+  void didUpdateWidget(covariant Sudoku oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // refresh cached data
+    if (oldWidget.id != widget.id) _fetch();
+  }
+
+  void _fetch() {
+    if (widget.game != null) {
+      _future = Future.value(widget.game);
+    } else {
+      _future = ManageSaves.loadGame(widget.id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final game = ModalRoute.of(context)!.settings.arguments as SudokuGame;
-    return ChangeNotifierProvider.value(
-      value: game,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final game = context.read<SudokuGame>();
-          var shouldScroll = false;
-          var preferredGridSize = constraints.maxWidth;
-          var spacing = relativeWidth(context, 0.046).clamp(kMinSpacing, kMaxSpacing);
-          var buttonSize = relativeWidth(context, 0.13).clamp(kMinButtonSize, kMaxButtonSize);
-          var headerHeight = relativeWidth(context, 0.13).clamp(kMinHeaderHeight, kMaxHeaderHeight);
+    return FutureBuilder(
+      future: _future,
+      builder: (context, AsyncSnapshot<SudokuGame> snapshot) {
+        if (!snapshot.hasData) return const SizedBox();
 
-          // Scenario 1: best is everything at their max size fits
-          var spaceRemaining = constraints.maxHeight - preferredGridSize - maxFixedHeight;
-          if (spaceRemaining < 0) {
-            // Scenario 2: try everything at their min to see if it fits
-            final size = game.grid.size;
-            preferredGridSize = kMinGridCellSize * size * size + (size - 1) * (kSubLineWidth * size + kMainLineWidth);
-            spaceRemaining = constraints.maxHeight - preferredGridSize - minFixedHeight;
+        final game = snapshot.data!;
+        return ChangeNotifierProvider.value(
+          value: game,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final game = context.read<SudokuGame>();
+              var shouldScroll = false;
+              var preferredGridSize = constraints.maxWidth;
+              var spacing = relativeWidth(context, 0.046).clamp(kMinSpacing, kMaxSpacing);
+              var buttonSize = relativeWidth(context, 0.13).clamp(kMinButtonSize, kMaxButtonSize);
+              var headerHeight = relativeWidth(context, 0.13).clamp(kMinHeaderHeight, kMaxHeaderHeight);
 
-            if (spaceRemaining < 0) {
-              // Scenario 3: everything at their min does not fit, so scroll I guess
-              shouldScroll = true;
-              spacing = kMinSpacing;
-              buttonSize = kMinButtonSize;
-              headerHeight = kMinHeaderHeight;
-            } else {
-              // Scenario 2 works: there's a happy medium between min and max sizes
-              final factor = constraints.maxHeight / (minFixedHeight + preferredGridSize);
+              // Scenario 1: best is everything at their max size fits
+              var spaceRemaining = constraints.maxHeight - preferredGridSize - maxFixedHeight;
+              if (spaceRemaining < 0) {
+                // Scenario 2: try everything at their min to see if it fits
+                final size = game.grid.size;
+                preferredGridSize =
+                    kMinGridCellSize * size * size + (size - 1) * (kSubLineWidth * size + kMainLineWidth);
+                spaceRemaining = constraints.maxHeight - preferredGridSize - minFixedHeight;
 
-              // the factor may be limited on the grid due to width
-              preferredGridSize = (preferredGridSize * factor).clamp(0, constraints.maxWidth);
-              spacing = kMinSpacing * factor;
-              buttonSize = kMinButtonSize * factor;
-              headerHeight = kMinHeaderHeight * factor;
-              spaceRemaining =
-                  constraints.maxHeight - (headerHeight + spacing * 6 + buttonSize * 3.5 + preferredGridSize);
-            }
-          } else {
-            // clamping due to width can mean there's additional space remaining to distribute
-            spaceRemaining +=
-                kMaxHeaderHeight - headerHeight + (kMaxSpacing - spacing) * 6 + (kMaxButtonSize - buttonSize) * 3.5;
-          }
-          final overflowSpacing = (spaceRemaining / 3).clamp(0, double.infinity).toDouble();
-          final colors = context.read<ThemeColors>();
-          final content =
-              _buildGame(spacing, preferredGridSize, game, colors, headerHeight, buttonSize, overflowSpacing);
+                if (spaceRemaining < 0) {
+                  // Scenario 3: everything at their min does not fit, so scroll I guess
+                  shouldScroll = true;
+                  spacing = kMinSpacing;
+                  buttonSize = kMinButtonSize;
+                  headerHeight = kMinHeaderHeight;
+                } else {
+                  // Scenario 2 works: there's a happy medium between min and max sizes
+                  final factor = constraints.maxHeight / (minFixedHeight + preferredGridSize);
 
-          return shouldScroll ? SingleChildScrollView(child: content) : content;
-        },
-      ),
+                  // the factor may be limited on the grid due to width
+                  preferredGridSize = (preferredGridSize * factor).clamp(0, constraints.maxWidth);
+                  spacing = kMinSpacing * factor;
+                  buttonSize = kMinButtonSize * factor;
+                  headerHeight = kMinHeaderHeight * factor;
+                  spaceRemaining =
+                      constraints.maxHeight - (headerHeight + spacing * 6 + buttonSize * 3.5 + preferredGridSize);
+                }
+              } else {
+                // clamping due to width can mean there's additional space remaining to distribute
+                spaceRemaining +=
+                    kMaxHeaderHeight - headerHeight + (kMaxSpacing - spacing) * 6 + (kMaxButtonSize - buttonSize) * 3.5;
+              }
+              final overflowSpacing = (spaceRemaining / 3).clamp(0, double.infinity).toDouble();
+              final colors = context.read<ThemeColors>();
+
+              final content =
+                  _buildGame(spacing, preferredGridSize, game, colors, headerHeight, buttonSize, overflowSpacing);
+
+              return shouldScroll ? SingleChildScrollView(child: content) : content;
+            },
+          ),
+        );
+      },
     );
   }
 

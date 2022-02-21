@@ -24,7 +24,7 @@ class SudokuGame extends ChangeNotifier {
     return SudokuGame._internal(
       title: DateTime.now().toString(),
       grid: Grid.fromJSON({
-        'grid':
+        'cells':
             '0[1234]c4c301c20c900c500c900c10c700c600c4c300c600c20c8c7c1c9000c7c4000c500c8c3000c600000c10c500c3c50c8c6c900c4c2c9c10c300'
       }),
       id: const Uuid().v4(),
@@ -127,5 +127,9 @@ class SudokuGame extends ChangeNotifier {
       lastPlayed: DateTime.fromMillisecondsSinceEpoch(json['lastPlayed']),
       id: json['id'],
     );
+  }
+
+  save() {
+    ManageSaves.saveGame(this);
   }
 }

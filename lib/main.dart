@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'pages/saved_games.dart';
 import 'pages/sudoku/sudoku.dart';
@@ -14,6 +15,7 @@ import 'common/spacing.dart';
 import 'common/text.dart';
 import 'models/game.dart';
 import 'sudoku/grid_widget.dart';
+import 'utils/saves.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,11 +23,23 @@ void main() {
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
   // SystemChrome.restoreSystemUIOverlays();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
+
+  final _router = GoRouter(
+    routes: [
+      GoRoute(path: '/', builder: (context, state) => const SavedGames()),
+      GoRoute(
+        path: '/sudoku/:id',
+        builder: (context, state) {
+          return Sudoku(id: state.params['id']!, game: state.extra as SudokuGame?);
+        },
+      ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -44,22 +58,16 @@ class MyApp extends StatelessWidget {
 
     return Provider.value(
       value: colors,
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'Flutter Demo',
+        routeInformationParser: _router.routeInformationParser,
+        routerDelegate: _router.routerDelegate,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: colors.background,
           fontFamily: 'Rubik',
         ),
-        initialRoute: SavedGames.routeName,
-        onUnknownRoute: (context) => MaterialPageRoute(
-          builder: (context) => const SavedGames(),
-        ),
-        routes: {
-          SavedGames.routeName: (context) => const SavedGames(),
-          Sudoku.routeName: (context) => const Sudoku(),
-        },
         builder: (context, child) => Scaffold(
           body: SafeArea(child: child!),
         ),

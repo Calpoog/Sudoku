@@ -33,9 +33,15 @@ class ManageSaves {
     //   was stored as a separate list in the shared preferences).
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final List<String> saves = prefs.getStringList(saveIdKey) ?? [];
-    return saves.map((gameTitle) {
-      final String gameState = prefs.getString(gameTitle) ?? '';
+    return saves.map((id) {
+      final String gameState = prefs.getString(id) ?? '';
       return SudokuGame.fromJSON(jsonDecode(gameState));
     }).toList();
+  }
+
+  static Future<SudokuGame> loadGame(String id) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String gameState = prefs.getString(id) ?? '';
+    return SudokuGame.fromJSON(jsonDecode(gameState));
   }
 }

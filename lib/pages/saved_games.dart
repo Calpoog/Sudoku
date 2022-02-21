@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../common/text.dart';
@@ -9,7 +10,7 @@ import 'sudoku/sudoku.dart';
 class SavedGames extends StatelessWidget {
   const SavedGames({Key? key}) : super(key: key);
 
-  static const routeName = '/savedGames';
+  static const routeName = '/';
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +33,7 @@ class SavedGames extends StatelessWidget {
                             title: AppText(game.title),
                             trailing: AppText(DateFormat.MEd().format(game.lastPlayed!)),
                             onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                Sudoku.routeName,
-                                arguments: game,
-                              );
+                              context.go('/sudoku/${game.id}');
                             },
                           );
                         }),
@@ -45,11 +42,9 @@ class SavedGames extends StatelessWidget {
                 padding: const EdgeInsets.all(20.0),
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      Sudoku.routeName,
-                      arguments: SudokuGame.fresh(),
-                    );
+                    final newGame = SudokuGame.fresh();
+                    newGame.save();
+                    context.go('/sudoku/${newGame.id}', extra: newGame);
                   },
                   child: const AppText('New game'),
                 ),
