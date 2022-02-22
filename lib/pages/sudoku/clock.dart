@@ -35,7 +35,7 @@ class _ClockState extends State<Clock> {
     final mins = (seconds / 60).floor();
     final hasMins = mins > 0;
     final secs = seconds % 60;
-    return AppText('${hasHours ? '${mins}h ' : ''}${hasMins ? '${mins}m ' : ''}${secs}s', size: widget.size);
+    return AppText('${hasHours ? '${hours}h ' : ''}${hasMins ? '${mins}m ' : ''}${secs}s', size: widget.size);
   }
 
   @override
