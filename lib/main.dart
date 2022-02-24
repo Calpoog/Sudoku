@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'pages/home.dart';
 import 'pages/saved_games.dart';
 import 'pages/sudoku/sudoku.dart';
 import 'sudoku/constants.dart';
@@ -31,11 +32,12 @@ class MyApp extends StatelessWidget {
 
   final _router = GoRouter(
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const SavedGames()),
+      GoRoute(path: '/', builder: (context, state) => const PageWrapper(child: HomePage())),
+      GoRoute(path: '/games', builder: (context, state) => const PageWrapper(child: SavedGames())),
       GoRoute(
         path: '/sudoku/:id',
         builder: (context, state) {
-          return Sudoku(id: state.params['id']!, game: state.extra as SudokuGame?);
+          return PageWrapper(child: Sudoku(id: state.params['id']!, game: state.extra as SudokuGame?));
         },
       ),
     ],
@@ -68,10 +70,21 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: colors.background,
           fontFamily: 'Rubik',
         ),
-        builder: (context, child) => Scaffold(
-          body: SafeArea(child: child!),
-        ),
+        builder: (context, child) => child!,
       ),
+    );
+  }
+}
+
+class PageWrapper extends StatelessWidget {
+  const PageWrapper({Key? key, required this.child}) : super(key: key);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(child: child),
     );
   }
 }
