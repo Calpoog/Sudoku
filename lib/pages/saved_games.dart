@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +12,8 @@ import '../sudoku/grid_widget.dart';
 import '../utils/saves.dart';
 import 'sudoku/sudoku.dart';
 
+const kSavedGameMaxTileWidth = 350.0;
+
 class SavedGames extends StatelessWidget {
   const SavedGames({Key? key}) : super(key: key);
 
@@ -18,37 +22,30 @@ class SavedGames extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final savedGames = ManageSaves.loadGames();
+
     return FutureBuilder(
       future: savedGames,
       builder: (context, AsyncSnapshot<List<SudokuGame>> snapshot) {
         if (snapshot.hasData) {
-          final count = snapshot.data!.length;
-          return Column(
-            children: [
-              Expanded(
-                child: count == 0
-                    ? const AppText('No games')
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(20.0),
-                        itemCount: count,
-                        itemBuilder: (context, index) {
-                          final game = snapshot.data![index];
-                          return SavedGameTile(game: game);
-                        }),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: OutlinedButton(
-                  onPressed: () {
-                    final newGame = SudokuGame.fresh();
-                    newGame.save();
-                    context.go('/sudoku/${newGame.id}', extra: newGame);
-                  },
-                  child: const AppText('New game'),
-                ),
-              ),
-            ],
-          );
+          final games = snapshot.data!;
+          final count = games.length;
+          final screenWidth = MediaQuery.of(context).size.width;
+          final crossAxisCount = (screenWidth / kSavedGameMaxTileWidth).floor();
+          return ListView.builder(
+              itemCount: (count / crossAxisCount).ceil(),
+              itemBuilder: (context, index) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (int i = index * crossAxisCount; i < min(count, crossAxisCount * (index + 1)); i++)
+                      Container(
+                        width: kSavedGameMaxTileWidth,
+                        padding: const EdgeInsets.all(10.0),
+                        child: SavedGameTile(game: games[i]),
+                      ),
+                  ],
+                );
+              });
         } else {
           return const AppText('Loading games...');
         }
@@ -71,7 +68,6 @@ class SavedGameTile extends StatelessWidget {
           return GestureDetector(
             onTap: () => context.go('/sudoku/${game.id}', extra: game),
             child: Container(
-              margin: const EdgeInsets.only(bottom: 20.0),
               decoration: BoxDecoration(
                 color: colors.indicatorDark,
                 borderRadius: const BorderRadius.all(Radius.circular(6.0)),
@@ -79,6 +75,7 @@ class SavedGameTile extends StatelessWidget {
               // constraints: const BoxConstraints(maxHeight: 300.0),
               padding: const EdgeInsets.all(20.0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GridWidget(game.grid, isPreview: true),
                   const SizedBox(height: 20.0),
