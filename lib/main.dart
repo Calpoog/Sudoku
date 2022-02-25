@@ -1,22 +1,14 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'models/settings.dart';
 import 'pages/home.dart';
 import 'pages/saved_games.dart';
-import 'pages/sudoku/sudoku.dart';
-import 'sudoku/constants.dart';
-import 'common/button.dart';
+import 'pages/settings_page.dart';
+import 'pages/sudoku/sudoku_page.dart';
 import 'common/colors.dart';
-import 'common/spacing.dart';
-import 'common/text.dart';
 import 'models/game.dart';
-import 'sudoku/grid_widget.dart';
-import 'utils/saves.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,10 +26,11 @@ class MyApp extends StatelessWidget {
     routes: [
       GoRoute(path: '/', builder: (context, state) => const PageWrapper(child: HomePage())),
       GoRoute(path: '/games', builder: (context, state) => const PageWrapper(child: SavedGames())),
+      GoRoute(path: '/settings', builder: (context, state) => PageWrapper(child: SettingsPage())),
       GoRoute(
         path: '/sudoku/:id',
         builder: (context, state) {
-          return PageWrapper(child: Sudoku(id: state.params['id']!, game: state.extra as SudokuGame?));
+          return PageWrapper(child: SudokuPage(id: state.params['id']!, game: state.extra as SudokuGame?));
         },
       ),
     ],
@@ -58,18 +51,21 @@ class MyApp extends StatelessWidget {
       indicatorLight: const Color.fromRGBO(55, 57, 61, 1),
     );
 
-    return Provider.value(
-      value: colors,
+    return MultiProvider(
+      providers: [
+        Provider.value(value: colors),
+        Provider(create: (context) => Settings()..load()),
+      ],
       child: MaterialApp.router(
         title: 'Flutter Demo',
         routeInformationParser: _router.routeInformationParser,
         routerDelegate: _router.routerDelegate,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primarySwatch: Colors.blue,
-          scaffoldBackgroundColor: colors.background,
-          fontFamily: 'Rubik',
-        ),
+            primarySwatch: Colors.blue,
+            scaffoldBackgroundColor: colors.background,
+            fontFamily: 'Rubik',
+            checkboxTheme: CheckboxThemeData()),
         builder: (context, child) => child!,
       ),
     );

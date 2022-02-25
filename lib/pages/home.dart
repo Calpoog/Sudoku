@@ -65,7 +65,12 @@ class HomePage extends StatelessWidget {
                 ),
                 _buildItem(context, 'multiplayer', 'MULTIPLAYER'),
                 _buildItem(context, 'maker', 'MAKER'),
-                _buildItem(context, 'settings', 'SETTINGS'),
+                _buildItem(
+                  context,
+                  'settings',
+                  'SETTINGS',
+                  () => context.go('/settings'),
+                ),
               ],
             ),
           ),
@@ -76,6 +81,7 @@ class HomePage extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, String icon, String text, [VoidCallback? onPressed]) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: onPressed,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(30.0, 20.0, 20.0, 20.0),

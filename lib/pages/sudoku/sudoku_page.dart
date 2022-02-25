@@ -12,17 +12,17 @@ import '../../utils/saves.dart';
 import 'actions.dart';
 import 'header.dart';
 
-class Sudoku extends StatefulWidget {
-  const Sudoku({Key? key, required this.id, this.game}) : super(key: key);
+class SudokuPage extends StatefulWidget {
+  const SudokuPage({Key? key, required this.id, this.game}) : super(key: key);
 
   final String id;
   final SudokuGame? game;
 
   @override
-  State<Sudoku> createState() => _SudokuState();
+  State<SudokuPage> createState() => _SudokuPageState();
 }
 
-class _SudokuState extends State<Sudoku> with SingleTickerProviderStateMixin {
+class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateMixin {
   late Future<SudokuGame> _future;
   late final AnimationController _controller = AnimationController(
     duration: const Duration(seconds: 1),
@@ -41,7 +41,7 @@ class _SudokuState extends State<Sudoku> with SingleTickerProviderStateMixin {
   }
 
   @override
-  void didUpdateWidget(covariant Sudoku oldWidget) {
+  void didUpdateWidget(covariant SudokuPage oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     // refresh cached data

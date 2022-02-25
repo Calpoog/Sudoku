@@ -10,7 +10,6 @@ import '../common/text.dart';
 import '../models/game.dart';
 import '../sudoku/grid_widget.dart';
 import '../utils/saves.dart';
-import 'sudoku/sudoku.dart';
 
 const kSavedGameMaxTileWidth = 350.0;
 

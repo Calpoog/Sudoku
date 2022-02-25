@@ -23,12 +23,12 @@ class SudokuGame extends ChangeNotifier {
   final List<Cell> history = [];
 
   SudokuGame._internal({
-    this.title = '',
+    String? title,
     required this.grid,
     this.lastPlayed,
     required this.id,
     int initialSeconds = 0,
-  }) {
+  }) : title = title ?? '' {
     timer = PlayTimer(initialSeconds);
   }
 
