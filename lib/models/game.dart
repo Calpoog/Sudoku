@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -70,6 +71,29 @@ class SudokuGame extends ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  void move(int col, int row) {
+    if (selectedCell != null) {
+      selectedCell = grid.cellAt(col, row);
+      notifyListeners();
+    }
+  }
+
+  void up() {
+    move(selectedCell!.col, max(0, selectedCell!.row - 1));
+  }
+
+  void down() {
+    move(selectedCell!.col, min(grid.size * grid.size - 1, selectedCell!.row + 1));
+  }
+
+  void left() {
+    move(max(0, selectedCell!.col - 1), selectedCell!.row);
+  }
+
+  void right() {
+    move(min(grid.size * grid.size - 1, selectedCell!.col + 1), selectedCell!.row);
   }
 
   void activate(int digit, [bool keepActive = false]) {

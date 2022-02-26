@@ -100,7 +100,7 @@ class Grid {
     }
   }
 
-  _getCellFromPosition(int row, int col) {
+  cellAt(int col, int row) {
     return cells[row * size * size + col];
   }
 
@@ -170,7 +170,7 @@ class Grid {
         for (int i = 0; i < pairs.length; i += 2) {
           final col = pairs[i];
           final row = pairs[i + 1];
-          cells.add(_getCellFromPosition(row, col));
+          cells.add(cellAt(col, row));
         }
         return Line(cells: cells, validator: _increasingValidator);
       },
