@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'common/header.dart';
 import 'models/settings.dart';
 import 'pages/home.dart';
 import 'pages/saved_games.dart';
@@ -24,13 +27,16 @@ class MyApp extends StatelessWidget {
 
   final _router = GoRouter(
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const PageWrapper(child: HomePage())),
-      GoRoute(path: '/games', builder: (context, state) => const PageWrapper(child: SavedGames())),
-      GoRoute(path: '/settings', builder: (context, state) => PageWrapper(child: SettingsPage())),
+      GoRoute(
+        path: '/',
+        pageBuilder: (context, state) => transition(const PageWrapper(child: HomePage())),
+      ),
+      GoRoute(path: '/games', pageBuilder: (context, state) => transition(const PageWrapper(child: SavedGames()))),
+      GoRoute(path: '/settings', pageBuilder: (context, state) => transition(PageWrapper(child: SettingsPage()))),
       GoRoute(
         path: '/sudoku/:id',
-        builder: (context, state) {
-          return PageWrapper(child: SudokuPage(id: state.params['id']!, game: state.extra as SudokuGame?));
+        pageBuilder: (context, state) {
+          return transition(PageWrapper(child: SudokuPage(id: state.params['id']!, game: state.extra as SudokuGame?)));
         },
       ),
     ],
@@ -66,7 +72,24 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: colors.background,
             fontFamily: 'Rubik',
             checkboxTheme: CheckboxThemeData()),
-        builder: (context, child) => child!,
+        builder: (context, child) => Scaffold(
+          body: SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: LayoutBuilder(builder: (context, constraints) {
+                return ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: min(constraints.maxWidth, 9 / 16 * constraints.maxHeight)),
+                  child: Column(
+                    children: [
+                      const AppHeader(),
+                      Expanded(child: child!),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -79,8 +102,13 @@ class PageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(child: child),
-    );
+    return child;
   }
+}
+
+Page transition(Widget child) {
+  return CustomTransitionPage(
+    child: child,
+    transitionsBuilder: (_, animation, ____, child) => FadeTransition(opacity: animation, child: child),
+  );
 }

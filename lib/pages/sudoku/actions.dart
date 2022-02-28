@@ -10,16 +10,16 @@ class GameActions extends StatelessWidget {
   const GameActions({
     Key? key,
     required this.buttonSize,
-    required this.spacing,
   }) : super(key: key);
 
   final double buttonSize;
-  final double spacing;
 
   @override
   Widget build(BuildContext context) {
     final game = context.watch<SudokuGame>();
     final colors = context.read<ThemeColors>();
+    final spacing = buttonSize * 0.2;
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: spacing),
       child: IconTheme(

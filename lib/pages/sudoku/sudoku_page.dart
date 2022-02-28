@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,7 +13,6 @@ import '../../sudoku/constants.dart';
 import '../../sudoku/grid_widget.dart';
 import '../../utils/saves.dart';
 import 'actions.dart';
-import 'header.dart';
 
 class SudokuPage extends StatefulWidget {
   const SudokuPage({Key? key, required this.id, this.game}) : super(key: key);
@@ -60,6 +61,8 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.read<ThemeColors>();
+
     return FutureBuilder(
       future: _future,
       builder: (context, AsyncSnapshot<SudokuGame> snapshot) {
@@ -96,53 +99,29 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final game = context.read<SudokuGame>();
-                var shouldScroll = false;
-                var preferredGridSize = constraints.maxWidth;
-                var spacing = relativeWidth(context, 0.046).clamp(kMinSpacing, kMaxSpacing);
-                var buttonSize = relativeWidth(context, 0.13).clamp(kMinButtonSize, kMaxButtonSize);
-                var headerHeight = relativeWidth(context, 0.13).clamp(kMinHeaderHeight, kMaxHeaderHeight);
 
-                // Scenario 1: best is everything at their max size fits
-                var spaceRemaining = constraints.maxHeight - preferredGridSize - maxFixedHeight;
-                if (spaceRemaining < 0) {
-                  // Scenario 2: try everything at their min to see if it fits
-                  final size = game.grid.size;
-                  preferredGridSize =
-                      kMinGridCellSize * size * size + (size - 1) * (kSubLineWidth * size + kMainLineWidth);
-                  spaceRemaining = constraints.maxHeight - preferredGridSize - minFixedHeight;
-
-                  if (spaceRemaining < 0) {
-                    // Scenario 3: everything at their min does not fit, so scroll I guess
-                    shouldScroll = true;
-                    spacing = kMinSpacing;
-                    buttonSize = kMinButtonSize;
-                    headerHeight = kMinHeaderHeight;
-                  } else {
-                    // Scenario 2 works: there's a happy medium between min and max sizes
-                    final factor = constraints.maxHeight / (minFixedHeight + preferredGridSize);
-
-                    // the factor may be limited on the grid due to width
-                    preferredGridSize = (preferredGridSize * factor).clamp(0, constraints.maxWidth);
-                    spacing = kMinSpacing * factor;
-                    buttonSize = kMinButtonSize * factor;
-                    headerHeight = kMinHeaderHeight * factor;
-                    spaceRemaining =
-                        constraints.maxHeight - (headerHeight + spacing * 6 + buttonSize * 3.5 + preferredGridSize);
-                  }
-                } else {
-                  // clamping due to width can mean there's additional space remaining to distribute
-                  spaceRemaining += kMaxHeaderHeight -
-                      headerHeight +
-                      (kMaxSpacing - spacing) * 6 +
-                      (kMaxButtonSize - buttonSize) * 3.5;
-                }
-                final overflowSpacing = (spaceRemaining / 3).clamp(0, double.infinity).toDouble();
-                final colors = context.read<ThemeColors>();
-
-                final content =
-                    _buildGame(spacing, preferredGridSize, game, colors, headerHeight, buttonSize, overflowSpacing);
-
-                return shouldScroll ? SingleChildScrollView(child: content) : content;
+                return AnimatedBuilder(
+                  animation: _animation,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: constraints.maxWidth, maxHeight: constraints.maxWidth),
+                    child: GridWidget(game.grid),
+                  ),
+                  builder: (context, child) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Transform.translate(
+                            offset: Offset(0, 50 * (1 - _animation.value)),
+                            child: Opacity(opacity: _animation.value, child: child),
+                          ),
+                        ),
+                        const Expanded(child: SudokuControls())
+                      ],
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -151,86 +130,84 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildGame(
-    double spacing,
-    double preferredGridSize,
-    SudokuGame game,
-    ThemeColors colors,
-    double headerHeight,
-    double buttonSize,
-    double overflowSpacing,
-  ) {
-    return AnimatedBuilder(
-        animation: _animation,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: preferredGridSize, maxHeight: preferredGridSize),
-          child: GridWidget(game.grid),
-        ),
-        builder: (context, child) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SudokuHeader(
-                height: headerHeight,
-                contentWidth: preferredGridSize,
-              ),
-              SizedBox(height: overflowSpacing),
-              Center(
-                child: Transform.translate(
-                  offset: Offset(0, 50 * (1 - _animation.value)),
-                  child: Opacity(opacity: _animation.value, child: child),
-                ),
-              ),
-              SizedBox(height: spacing + overflowSpacing.clamp(0, 100.0)),
-              Container(
-                color: colors.surface,
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(vertical: spacing),
-                child: Column(
-                  children: [
-                    _buildDigitButtonRow(buttonSize, spacing, 0, 5),
-                    SizedBox(height: spacing),
-                    _buildDigitButtonRow(
-                      buttonSize,
-                      spacing,
-                      5,
-                      4,
-                      Button(
-                        size: buttonSize,
-                        child: SvgPicture.asset('assets/icons/x.svg', width: buttonSize * 0.4),
-                        onPressed: () => game.clearCell(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              GameActions(buttonSize: buttonSize, spacing: spacing),
-            ],
-          );
-        });
+  @override
+  void dispose() {
+    _future.then((game) => game.timer.stop());
+    _focus.dispose();
+    super.dispose();
   }
+}
 
-  Widget _buildDigitButtonRow(double buttonSize, double spacing, int start, int length, [Widget? extra]) {
+class SudokuControls extends StatelessWidget {
+  const SudokuControls({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.read<ThemeColors>();
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final buttonSize = min(kMaxButtonSize, min(constraints.maxHeight / 4.7, constraints.maxWidth / 6.2));
+      final spacing = buttonSize * 0.2;
+      return Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(child: SizedBox(height: spacing)),
+          Container(
+            color: colors.surface,
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(vertical: spacing),
+            child: Column(
+              children: [
+                _DigitRow(buttonSize: buttonSize, start: 0, length: 5),
+                SizedBox(height: spacing),
+                _DigitRow(
+                  buttonSize: buttonSize,
+                  start: 5,
+                  length: 4,
+                  extra: Button(
+                    size: buttonSize,
+                    child: SvgPicture.asset('assets/icons/x.svg', width: buttonSize * 0.4),
+                    onPressed: () => context.read<SudokuGame>().clearCell(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GameActions(buttonSize: buttonSize),
+        ],
+      );
+    });
+  }
+}
+
+class _DigitRow extends StatelessWidget {
+  const _DigitRow({
+    Key? key,
+    required this.buttonSize,
+    required this.start,
+    required this.length,
+    this.extra,
+  }) : super(key: key);
+
+  final double buttonSize;
+  final int start;
+  final int length;
+  final Widget? extra;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       ...List.generate(
         length,
         (index) => Padding(
-          padding: EdgeInsets.only(right: index < 4 ? spacing : 0),
+          padding: EdgeInsets.only(right: index < 4 ? buttonSize * 0.2 : 0),
           child: DigitButton(
             digit: index + 1 + start,
             size: buttonSize,
           ),
         ),
       ),
-      if (extra != null) extra,
+      if (extra != null) extra!,
     ]);
-  }
-
-  @override
-  void dispose() {
-    _future.then((game) => game.timer.stop());
-    _focus.dispose();
-    super.dispose();
   }
 }
