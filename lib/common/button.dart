@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/game.dart';
+import '../models/settings.dart';
 import 'colors.dart';
 import 'text.dart';
 
@@ -98,17 +99,18 @@ class DigitButton extends StatelessWidget {
               digit.toString(),
               size: size * 0.6,
             ),
-            Positioned(
-              bottom: size * 0.1,
-              right: size * 0.1,
-              child: Opacity(
-                opacity: 0.5,
-                child: AppText(
-                  (pow(game.grid.size, 2) - game.grid.cells.where((cell) => cell.digit == digit).length).toString(),
-                  size: size * 0.2,
+            if (context.watch<Settings>().showRemainingCount)
+              Positioned(
+                bottom: size * 0.1,
+                right: size * 0.1,
+                child: Opacity(
+                  opacity: 0.5,
+                  child: AppText(
+                    (pow(game.grid.size, 2) - game.grid.cells.where((cell) => cell.digit == digit).length).toString(),
+                    size: size * 0.2,
+                  ),
                 ),
-              ),
-            )
+              )
           ],
         ),
       ),

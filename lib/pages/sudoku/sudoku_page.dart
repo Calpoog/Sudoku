@@ -117,7 +117,7 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                             child: Opacity(opacity: _animation.value, child: child),
                           ),
                         ),
-                        const Expanded(child: SudokuControls())
+                        Expanded(child: SudokuControls())
                       ],
                     );
                   },
@@ -139,19 +139,22 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
 }
 
 class SudokuControls extends StatelessWidget {
-  const SudokuControls({Key? key}) : super(key: key);
+  SudokuControls({Key? key, this.showActions = true, this.buttonSize}) : super(key: key);
+
+  final bool showActions;
+  double? buttonSize;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.read<ThemeColors>();
 
     return LayoutBuilder(builder: (context, constraints) {
-      final buttonSize = min(kMaxButtonSize, min(constraints.maxHeight / 4.7, constraints.maxWidth / 6.2));
+      final buttonSize =
+          this.buttonSize ?? min(kMaxButtonSize, min(constraints.maxHeight / 4.7, constraints.maxWidth / 6.2));
       final spacing = buttonSize * 0.2;
       return Column(
-        mainAxisSize: MainAxisSize.max,
         children: [
-          Expanded(child: SizedBox(height: spacing)),
+          // Expanded(child: SizedBox(height: spacing)),
           Container(
             color: colors.surface,
             alignment: Alignment.center,
@@ -173,7 +176,7 @@ class SudokuControls extends StatelessWidget {
               ],
             ),
           ),
-          GameActions(buttonSize: buttonSize),
+          if (showActions) GameActions(buttonSize: buttonSize),
         ],
       );
     });

@@ -7,6 +7,7 @@ import '../common/colors.dart';
 import '../models/cell.dart';
 import '../models/game.dart';
 import '../models/grid.dart';
+import '../models/settings.dart';
 import 'constants.dart';
 
 class GridPainter extends StatelessWidget {
@@ -21,7 +22,13 @@ class GridPainter extends StatelessWidget {
     final game = context.watch<SudokuGame>();
     return CustomPaint(
       child: child,
-      painter: GridCustomPainter(cellSize: cellSize, grid: game.grid, selectedCell: game.selectedCell, colors: colors),
+      painter: GridCustomPainter(
+        cellSize: cellSize,
+        grid: game.grid,
+        selectedCell: game.selectedCell,
+        colors: colors,
+        settings: context.watch<Settings>(),
+      ),
     );
   }
 }
@@ -31,8 +38,15 @@ class GridCustomPainter extends CustomPainter {
   final Grid grid;
   final ThemeColors colors;
   final Cell? selectedCell;
+  final Settings settings;
 
-  GridCustomPainter({required this.cellSize, required this.grid, required this.selectedCell, required this.colors});
+  GridCustomPainter({
+    required this.cellSize,
+    required this.grid,
+    required this.selectedCell,
+    required this.colors,
+    required this.settings,
+  });
 
   double _getOffset(int i) {
     final mainLineOffset = (i / grid.size).floor() * (kMainLineWidth - kSubLineWidth);
@@ -50,7 +64,7 @@ class GridCustomPainter extends CustomPainter {
 
     var paint = Paint()..color = colors.indicatorDark.withOpacity(0.3);
 
-    if (selectedCell != null) {
+    if (settings.highlightRowColumn && selectedCell != null) {
       canvas.drawRect(Rect.fromLTWH(_getOffset(selectedCell!.col), 0, cellSize, boardSize), paint);
       canvas.drawRect(Rect.fromLTWH(0, _getOffset(selectedCell!.row), boardSize, cellSize), paint);
     }

@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider.value(value: colors),
-        Provider(create: (context) => Settings()..load()),
+        ChangeNotifierProvider(create: (context) => Settings()..load()),
       ],
       child: MaterialApp.router(
         title: 'Flutter Demo',

@@ -6,6 +6,7 @@ import '../common/colors.dart';
 import '../common/text.dart';
 import '../models/cell.dart';
 import '../models/game.dart';
+import '../models/settings.dart';
 
 class CellWidget extends StatelessWidget {
   const CellWidget(this.cell, {Key? key, required this.size, this.isPreview = false}) : super(key: key);
@@ -16,6 +17,7 @@ class CellWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<Settings>();
     final game = context.watch<SudokuGame>();
     final colors = context.read<ThemeColors>();
     final isSelected = game.selectedCell == cell;
@@ -23,9 +25,9 @@ class CellWidget extends StatelessWidget {
     final isMatch = matchDigit > 0 && (cell.digit == matchDigit || cell.candidates.contains(matchDigit));
     final indicatorColor = isSelected
         ? colors.accent
-        : isMatch
+        : isMatch && settings.showMatchingNumbers
             ? colors.indicatorDark
-            : cell.isClue
+            : cell.isClue && settings.indicateStartingHints
                 ? colors.indicatorLight.withOpacity(0.5)
                 : Colors.transparent;
     final hasIndicator = indicatorColor != Colors.transparent;

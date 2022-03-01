@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/game.dart';
+import '../models/settings.dart';
 
 // Keys for storage/retrieval DO NOT CHANGE ONCE FINALIZED
 const saveIdKey = 'SaveIDs';
@@ -43,5 +44,10 @@ class ManageSaves {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String gameState = prefs.getString(id) ?? '';
     return SudokuGame.fromJSON(jsonDecode(gameState));
+  }
+
+  static Future<void> saveSettings(Settings settings) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    unawaited(prefs.setString('settings', jsonEncode(settings.toJSON())));
   }
 }

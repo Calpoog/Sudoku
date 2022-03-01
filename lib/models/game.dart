@@ -74,10 +74,8 @@ class SudokuGame extends ChangeNotifier {
   }
 
   void move(int col, int row) {
-    if (selectedCell != null) {
-      selectedCell = grid.cellAt(col, row);
-      notifyListeners();
-    }
+    selectedCell = grid.cellAt(col, row);
+    notifyListeners();
   }
 
   void up() {
