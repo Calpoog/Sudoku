@@ -14,6 +14,7 @@ import '../../sudoku/constants.dart';
 import '../../sudoku/grid_widget.dart';
 import '../../utils/saves.dart';
 import 'actions.dart';
+import 'clock.dart';
 
 class SudokuPage extends StatefulWidget {
   const SudokuPage({Key? key, required this.id, this.game}) : super(key: key);
@@ -112,7 +113,13 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const AppHeader(title: 'Sudoku'),
+                        const AppHeader(
+                          title: 'Sudoku',
+                          trailing: Padding(
+                            padding: EdgeInsets.only(top: 6.0),
+                            child: Clock(size: 14),
+                          ),
+                        ),
                         Center(
                           child: Transform.translate(
                             offset: Offset(0, 50 * (1 - _animation.value)),
