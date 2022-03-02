@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../common/header.dart';
 import '../common/text.dart';
 import '../models/game.dart';
 import '../models/settings.dart';
@@ -29,13 +29,12 @@ class SettingsPage extends StatelessWidget {
       value: game,
       child: Column(
         children: [
-          // 6.2b = w
-          // 2.6b + w = h
-          // 6.2b = h - 2.6b
-          // 8.8b = h
+          const AppHeader(title: 'Settings'),
           Expanded(
             flex: 2,
             child: Container(
+              alignment: Alignment.center,
+              width: double.infinity,
               decoration: BoxDecoration(
                 border: Border.all(),
                 borderRadius: const BorderRadius.all(Radius.circular(6.0)),

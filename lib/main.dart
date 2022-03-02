@@ -29,17 +29,44 @@ class MyApp extends StatelessWidget {
     routes: [
       GoRoute(
         path: '/',
+        name: 'home',
         pageBuilder: (context, state) => transition(const PageWrapper(child: HomePage())),
       ),
-      GoRoute(path: '/games', pageBuilder: (context, state) => transition(const PageWrapper(child: SavedGames()))),
-      GoRoute(path: '/settings', pageBuilder: (context, state) => transition(PageWrapper(child: SettingsPage()))),
+      GoRoute(
+        path: '/games',
+        name: 'games',
+        pageBuilder: (context, state) => transition(
+          const PageWrapper(child: SavedGames()),
+        ),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        pageBuilder: (context, state) => transition(
+          PageWrapper(child: SettingsPage()),
+        ),
+      ),
       GoRoute(
         path: '/sudoku/:id',
+        name: 'sudoku',
         pageBuilder: (context, state) {
           return transition(PageWrapper(child: SudokuPage(id: state.params['id']!, game: state.extra as SudokuGame?)));
         },
       ),
     ],
+    navigatorBuilder: (context, routerState, child) => Scaffold(
+      body: SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: LayoutBuilder(builder: (context, constraints) {
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: min(constraints.maxWidth, 9 / 16 * constraints.maxHeight)),
+              child: child,
+            );
+          }),
+        ),
+      ),
+    ),
   );
 
   @override
@@ -68,27 +95,10 @@ class MyApp extends StatelessWidget {
         routerDelegate: _router.routerDelegate,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-            primarySwatch: Colors.blue,
-            scaffoldBackgroundColor: colors.background,
-            fontFamily: 'Rubik',
-            checkboxTheme: CheckboxThemeData()),
-        builder: (context, child) => Scaffold(
-          body: SafeArea(
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: LayoutBuilder(builder: (context, constraints) {
-                return ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: min(constraints.maxWidth, 9 / 16 * constraints.maxHeight)),
-                  child: Column(
-                    children: [
-                      const AppHeader(),
-                      Expanded(child: child!),
-                    ],
-                  ),
-                );
-              }),
-            ),
-          ),
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: colors.background,
+          fontFamily: 'Rubik',
+          checkboxTheme: CheckboxThemeData(),
         ),
       ),
     );

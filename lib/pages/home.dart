@@ -55,13 +55,13 @@ class HomePage extends StatelessWidget {
                 _buildItem(context, 'board', 'NEW GAME', () {
                   final newGame = SudokuGame.fresh();
                   newGame.save();
-                  context.go('/sudoku/${newGame.id}', extra: newGame);
+                  context.goNamed('sudoku', params: {'id': newGame.id}, extra: newGame);
                 }),
                 _buildItem(
                   context,
                   'saved-games',
                   'SAVED GAMES',
-                  () => context.go('/games'),
+                  () => context.goNamed('games'),
                 ),
                 _buildItem(context, 'multiplayer', 'MULTIPLAYER'),
                 _buildItem(context, 'maker', 'MAKER'),
@@ -69,7 +69,7 @@ class HomePage extends StatelessWidget {
                   context,
                   'settings',
                   'SETTINGS',
-                  () => context.go('/settings'),
+                  () => context.goNamed('settings'),
                 ),
               ],
             ),

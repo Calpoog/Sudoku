@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../common/colors.dart';
+import '../common/header.dart';
 import '../common/text.dart';
 import '../models/game.dart';
 import '../sudoku/grid_widget.dart';
@@ -30,21 +31,29 @@ class SavedGames extends StatelessWidget {
           final count = games.length;
           final screenWidth = MediaQuery.of(context).size.width;
           final crossAxisCount = (screenWidth / kSavedGameMaxTileWidth).floor();
-          return ListView.builder(
-              itemCount: (count / crossAxisCount).ceil(),
-              itemBuilder: (context, index) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (int i = index * crossAxisCount; i < min(count, crossAxisCount * (index + 1)); i++)
-                      Container(
-                        width: kSavedGameMaxTileWidth,
-                        padding: const EdgeInsets.all(10.0),
-                        child: SavedGameTile(game: games[i]),
-                      ),
-                  ],
-                );
-              });
+          return Column(
+            children: [
+              const AppHeader(title: 'Saved games'),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: (count / crossAxisCount).ceil(),
+                  itemBuilder: (context, index) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (int i = index * crossAxisCount; i < min(count, crossAxisCount * (index + 1)); i++)
+                          Container(
+                            width: kSavedGameMaxTileWidth,
+                            padding: const EdgeInsets.all(10.0),
+                            child: SavedGameTile(game: games[i]),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
         } else {
           return const AppText('Loading games...');
         }
@@ -65,7 +74,7 @@ class SavedGameTile extends StatelessWidget {
         value: game,
         builder: (context, _) {
           return GestureDetector(
-            onTap: () => context.go('/sudoku/${game.id}', extra: game),
+            onTap: () => context.goNamed('sudoku', params: {'id': game.id}, extra: game),
             child: Container(
               decoration: BoxDecoration(
                 color: colors.indicatorDark,

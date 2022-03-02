@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../../common/button.dart';
 import '../../common/colors.dart';
+import '../../common/header.dart';
 import '../../common/spacing.dart';
 import '../../models/game.dart';
 import '../../sudoku/constants.dart';
@@ -111,13 +112,15 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        const AppHeader(title: 'Sudoku'),
                         Center(
                           child: Transform.translate(
                             offset: Offset(0, 50 * (1 - _animation.value)),
                             child: Opacity(opacity: _animation.value, child: child),
                           ),
                         ),
-                        Expanded(child: SudokuControls())
+                        const SizedBox(height: 30.0),
+                        const Expanded(child: SudokuControls())
                       ],
                     );
                   },
@@ -139,10 +142,10 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
 }
 
 class SudokuControls extends StatelessWidget {
-  SudokuControls({Key? key, this.showActions = true, this.buttonSize}) : super(key: key);
+  const SudokuControls({Key? key, this.showActions = true, this.buttonSize}) : super(key: key);
 
   final bool showActions;
-  double? buttonSize;
+  final double? buttonSize;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +157,6 @@ class SudokuControls extends StatelessWidget {
       final spacing = buttonSize * 0.2;
       return Column(
         children: [
-          // Expanded(child: SizedBox(height: spacing)),
           Container(
             color: colors.surface,
             alignment: Alignment.center,
