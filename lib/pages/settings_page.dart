@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import '../common/colors.dart';
 import '../common/header.dart';
 import '../common/text.dart';
 import '../models/game.dart';
@@ -23,7 +25,7 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.read<Settings>();
+    final settings = context.watch<Settings>();
 
     return ChangeNotifierProvider.value(
       value: game,
@@ -66,28 +68,36 @@ class SettingsPage extends StatelessWidget {
               child: Column(
                 children: [
                   ListTile(
-                    title: AppText('Show matching numbers'),
+                    contentPadding: const EdgeInsets.all(8.0),
+                    title: const AppText('Show matching numbers'),
                     onTap: () {
                       settings.showMatchingNumbers = !settings.showMatchingNumbers;
                     },
+                    trailing: SettingsCheckbox(isChecked: settings.showMatchingNumbers),
                   ),
                   ListTile(
-                    title: AppText('Highlight selected row & column'),
+                    contentPadding: const EdgeInsets.all(8.0),
+                    title: const AppText('Highlight selected row & column'),
                     onTap: () {
                       settings.highlightRowColumn = !settings.highlightRowColumn;
                     },
+                    trailing: SettingsCheckbox(isChecked: settings.highlightRowColumn),
                   ),
                   ListTile(
-                    title: AppText('Indicate starting clues'),
+                    contentPadding: const EdgeInsets.all(8.0),
+                    title: const AppText('Indicate starting clues'),
                     onTap: () {
                       settings.indicateStartingHints = !settings.indicateStartingHints;
                     },
+                    trailing: SettingsCheckbox(isChecked: settings.indicateStartingHints),
                   ),
                   ListTile(
-                    title: AppText('Show remaining number count'),
+                    contentPadding: const EdgeInsets.all(8.0),
+                    title: const AppText('Show remaining number count'),
                     onTap: () {
                       settings.showRemainingCount = !settings.showRemainingCount;
                     },
+                    trailing: SettingsCheckbox(isChecked: settings.showRemainingCount),
                   ),
                 ],
               ),
@@ -95,6 +105,27 @@ class SettingsPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class SettingsCheckbox extends StatelessWidget {
+  const SettingsCheckbox({Key? key, this.isChecked = false}) : super(key: key);
+
+  final bool isChecked;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.read<ThemeColors>();
+    return Container(
+      height: 30,
+      width: 30,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.text),
+        borderRadius: const BorderRadius.all(Radius.circular(4.0)),
+      ),
+      child: isChecked ? SvgPicture.asset('assets/icons/check.svg', width: 16) : null,
     );
   }
 }
