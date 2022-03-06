@@ -31,27 +31,30 @@ class MyApp extends StatelessWidget {
         path: '/',
         name: 'home',
         pageBuilder: (context, state) => transition(const PageWrapper(child: HomePage())),
-      ),
-      GoRoute(
-        path: '/games',
-        name: 'games',
-        pageBuilder: (context, state) => transition(
-          const PageWrapper(child: SavedGames()),
-        ),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        pageBuilder: (context, state) => transition(
-          PageWrapper(child: SettingsPage()),
-        ),
-      ),
-      GoRoute(
-        path: '/sudoku/:id',
-        name: 'sudoku',
-        pageBuilder: (context, state) {
-          return transition(PageWrapper(child: SudokuPage(id: state.params['id']!, game: state.extra as SudokuGame?)));
-        },
+        routes: [
+          GoRoute(
+            path: 'games',
+            name: 'games',
+            pageBuilder: (context, state) => transition(
+              const PageWrapper(child: SavedGames()),
+            ),
+          ),
+          GoRoute(
+            path: 'settings',
+            name: 'settings',
+            pageBuilder: (context, state) => transition(
+              PageWrapper(child: SettingsPage()),
+            ),
+          ),
+          GoRoute(
+            path: 'sudoku/:id',
+            name: 'sudoku',
+            pageBuilder: (context, state) {
+              return transition(
+                  PageWrapper(child: SudokuPage(id: state.params['id']!, game: state.extra as SudokuGame?)));
+            },
+          ),
+        ],
       ),
     ],
     navigatorBuilder: (context, routerState, child) => Scaffold(

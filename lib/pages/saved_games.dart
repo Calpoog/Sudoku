@@ -23,19 +23,19 @@ class SavedGames extends StatelessWidget {
   Widget build(BuildContext context) {
     final savedGames = ManageSaves.loadGames();
 
-    return FutureBuilder(
-      future: savedGames,
-      builder: (context, AsyncSnapshot<List<SudokuGame>> snapshot) {
-        if (snapshot.hasData) {
-          final games = snapshot.data!;
-          final count = games.length;
-          final screenWidth = MediaQuery.of(context).size.width;
-          final crossAxisCount = (screenWidth / kSavedGameMaxTileWidth).floor();
-          return Column(
-            children: [
-              const AppHeader(title: 'Saved games'),
-              Expanded(
-                child: ListView.builder(
+    return Column(
+      children: [
+        const AppHeader(title: 'Saved games'),
+        Expanded(
+          child: FutureBuilder(
+            future: savedGames,
+            builder: (context, AsyncSnapshot<List<SudokuGame>> snapshot) {
+              if (snapshot.hasData) {
+                final games = snapshot.data!;
+                final count = games.length;
+                final screenWidth = MediaQuery.of(context).size.width;
+                final crossAxisCount = (screenWidth / kSavedGameMaxTileWidth).floor();
+                return ListView.builder(
                   itemCount: (count / crossAxisCount).ceil(),
                   itemBuilder: (context, index) {
                     return Row(
@@ -50,14 +50,14 @@ class SavedGames extends StatelessWidget {
                       ],
                     );
                   },
-                ),
-              ),
-            ],
-          );
-        } else {
-          return const AppText('Loading games...');
-        }
-      },
+                );
+              } else {
+                return const CircularProgressIndicator.adaptive();
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
 }
