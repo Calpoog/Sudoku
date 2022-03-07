@@ -33,7 +33,7 @@ class CellWidget extends StatelessWidget {
       },
       onLongPress: () {
         HapticFeedback.heavyImpact();
-        game.clearCell(cell);
+        game.clearCell(cell: cell);
       },
       // onDoubleTap: () => game.clearCell(cell),
       child: contents,

@@ -117,7 +117,7 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearCell([Cell? cell]) {
+  void clearCell({Cell? cell, bool notify = true}) {
     if (cell != null && !cell.isClue) {
       cell.clear();
       // this duplicates setting digit to 0 but also deals with history
@@ -127,6 +127,13 @@ class SudokuGame extends ChangeNotifier {
       _setDigit(selectedCell!, 0);
     }
     activeDigit = 0;
+    if (notify) notifyListeners();
+  }
+
+  void restart() {
+    for (var cell in grid.cells) {
+      clearCell(cell: cell, notify: false);
+    }
     notifyListeners();
   }
 

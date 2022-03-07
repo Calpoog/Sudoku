@@ -34,7 +34,7 @@ class GameActions extends StatelessWidget {
                 'assets/icons/board.svg',
                 width: buttonSize * 0.45,
               ),
-              onPressed: () {},
+              onPressed: () => game.restart(),
             ),
             SizedBox(width: spacing),
             Button(
