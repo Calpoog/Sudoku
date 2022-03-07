@@ -106,12 +106,12 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final game = context.watch<SudokuGame>();
+    final settings = context.watch<Settings>();
+    final colors = context.read<ThemeColors>();
     final cell = widget.cell;
     final isSelected = game.selectedCell == cell;
     final matchDigit = game.selectedCell?.digit ?? 0;
     final isMatch = matchDigit > 0 && (cell.digit == matchDigit || cell.candidates.contains(matchDigit));
-    final settings = context.watch<Settings>();
-    final colors = context.read<ThemeColors>();
     final indicatorColor = isSelected
         ? colors.accent
         : cell.markedInvalid && cell.digit != 0
@@ -170,7 +170,7 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
             child: AnimatedBuilder(
               animation: _controller,
               child: AppText(
-                (clearingDigit ?? 2).toString(),
+                clearingDigit.toString(),
                 size: widget.size * 0.5,
                 weight: FontWeight.w300,
               ),
