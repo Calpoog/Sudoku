@@ -30,6 +30,10 @@ class Grid {
   /// A list of all cells in left-right/top-bottom order.
   late final List<Cell> cells;
 
+  /// A left-right/top-bottom list of solution digits
+  /// A grid may not have a solution if it's being built in the maker.
+  final List<int>? solution;
+
   /// A list of rows (list of cells) referencing the same Cell objects in `cells`
   final List<Line> rows = [];
 
@@ -47,6 +51,7 @@ class Grid {
   // individual cells for the baby bois who turn on correct-indicator mode
   Grid._internal({
     required this.cells,
+    this.solution,
     List<List<int>>? thermos,
     required this.size,
   }) {
@@ -100,23 +105,33 @@ class Grid {
     }
   }
 
-  cellAt(int col, int row) {
-    return cells[row * size * size + col];
+  Cell cellAt(int col, int row) {
+    return cells[_flattenedPosition(col, row)];
+  }
+
+  int _flattenedPosition(int col, int row) {
+    return row * size * size + col;
   }
 
   // Ignore for now, this will only really be relevant when it comes to the sudoku-maker
-  // factory Grid.empty({int size = 3}) {
-  //   return Grid._internal(digits: List.filled(pow(size, size * 2).toInt(), 0), size: size);
-  // }
+  factory Grid.empty({int size = 3}) {
+    return Grid._internal(
+      cells: List.generate(
+          pow(size, size * 2).toInt(), (i) => Cell(row: (i / size * size).floor(), col: i % (size * size))),
+      size: size,
+    );
+  }
 
   factory Grid.fromJSON(Map<String, dynamic> json, {int size = 3}) {
     return Grid._internal(
       cells: _deserealizeCells(json['cells']),
+      solution: (json['solution'] as String).split('').map((d) => int.parse(d)).toList(),
       size: size,
       thermos: json['thermos'],
     );
   }
 
+  /// Whether the entire grid is valid according to the current state
   bool get isValid {
     final List<Line> lines = List.from(rows)
       ..addAll(cols)
@@ -131,8 +146,25 @@ class Grid {
     return true;
   }
 
+  /// Checks against the solution and marks cells as valid for display and returns
+  /// whether the entire grid is valid.
+  bool check() {
+    var isValid = true;
+    for (var cell in cells) {
+      if (cell.isClue) continue;
+      final isValidCell = isCellValid(cell);
+      cell.markedInvalid = !isValidCell;
+      isValid = false;
+    }
+    return isValid;
+  }
+
   /// Checks only the validity of a [Cell] based on the rows/cols/boxes/thermos/cages it is in
   bool isCellValid(Cell cell) {
+    if (solution != null) {
+      return solution![_flattenedPosition(cell.col, cell.row)] == cell.digit;
+    }
+
     final boxX = (cell.col / size).floor();
     final boxY = (cell.row / size).floor();
     if (!boxes[boxY * size + boxX].isValid) return false;
@@ -152,6 +184,10 @@ class Grid {
 
     if (thermos.isNotEmpty) {
       json['thermos'] = _simplifyLines(thermos);
+    }
+
+    if (solution != null) {
+      json['solution'] = solution!.join('');
     }
 
     return json;

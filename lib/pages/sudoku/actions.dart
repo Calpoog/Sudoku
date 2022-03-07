@@ -44,7 +44,7 @@ class GameActions extends StatelessWidget {
                 'assets/icons/check.svg',
                 width: buttonSize * 0.45,
               ),
-              onPressed: () {},
+              onPressed: () => game.check(),
             ),
             SizedBox(width: spacing),
             Button(

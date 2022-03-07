@@ -38,7 +38,8 @@ class SudokuGame extends ChangeNotifier {
       title: DateTime.now().toString(),
       grid: Grid.fromJSON({
         'cells':
-            '0[1234]c4c301c20c900c500c900c10c700c600c4c300c600c20c8c7c1c9000c7c4000c500c8c3000c600000c10c500c3c50c8c6c900c4c2c9c10c300'
+            '0[1234]c4c301c20c900c500c900c10c700c600c4c300c600c20c8c7c1c9000c7c4000c500c8c3000c600000c10c500c3c50c8c6c900c4c2c9c10c300',
+        'solution': '864371259325849761971265843436192587198657432257483916689734125713528694542916378',
       }),
       id: const Uuid().v4(),
     );
@@ -54,6 +55,12 @@ class SudokuGame extends ChangeNotifier {
 
   void togglePencil() {
     isPenciling = !isPenciling;
+    notifyListeners();
+  }
+
+  /// Checks if the board is valid
+  void check() {
+    grid.check();
     notifyListeners();
   }
 

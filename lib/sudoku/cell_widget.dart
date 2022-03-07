@@ -25,13 +25,15 @@ class CellWidget extends StatelessWidget {
     final isMatch = matchDigit > 0 && (cell.digit == matchDigit || cell.candidates.contains(matchDigit));
     final indicatorColor = isSelected
         ? colors.accent
-        : isMatch && settings.showMatchingNumbers
-            ? colors.indicatorDark
-            : cell.isClue && settings.indicateStartingHints
-                ? colors.indicatorLight.withOpacity(0.5)
-                : Colors.transparent;
+        : cell.markedInvalid && cell.digit != 0
+            ? colors.error
+            : isMatch && settings.showMatchingNumbers
+                ? colors.indicatorDark
+                : cell.isClue && settings.indicateStartingHints
+                    ? colors.indicatorLight.withOpacity(0.5)
+                    : Colors.transparent;
     final hasIndicator = indicatorColor != Colors.transparent;
-    final contents = _buildContents(hasIndicator, indicatorColor);
+    final contents = _buildContents(hasIndicator, indicatorColor, colors);
 
     if (isPreview) return contents;
 
@@ -50,7 +52,7 @@ class CellWidget extends StatelessWidget {
     );
   }
 
-  Stack _buildContents(bool hasIndicator, Color indicatorColor) {
+  Stack _buildContents(bool hasIndicator, Color indicatorColor, ThemeColors colors) {
     return Stack(
       alignment: Alignment.center,
       children: [

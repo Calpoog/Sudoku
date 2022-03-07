@@ -11,6 +11,7 @@ class AppText extends StatelessWidget {
     this.weight,
     this.uppercase = false,
     this.letterSpacing,
+    this.color,
   }) : super(key: key);
 
   const AppText.title(this.text, {Key? key})
@@ -18,6 +19,7 @@ class AppText extends StatelessWidget {
         uppercase = true,
         weight = FontWeight.w500,
         letterSpacing = 2,
+        color = null,
         super(key: key);
 
   final String text;
@@ -25,14 +27,16 @@ class AppText extends StatelessWidget {
   final FontWeight? weight;
   final double? letterSpacing;
   final bool uppercase;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final style = DefaultTextStyle.of(context);
+    final colors = context.read<ThemeColors>();
     return Text(
       uppercase ? text.toUpperCase() : text,
       style: TextStyle(
-        color: context.read<ThemeColors>().text,
+        color: color ?? colors.text,
         fontSize: size ?? style.style.fontSize,
         fontWeight: weight ?? style.style.fontWeight,
         letterSpacing: letterSpacing,

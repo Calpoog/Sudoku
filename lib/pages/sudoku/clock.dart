@@ -32,7 +32,7 @@ class _ClockState extends State<Clock> {
     final seconds = timer.currentDuration.inSeconds;
     final hours = (seconds / 3600).floor();
     final hasHours = hours > 0;
-    final mins = (seconds / 60).floor();
+    final mins = (seconds / 60).floor() % 60;
     final hasMins = mins > 0;
     final secs = seconds % 60;
     return AppText('${hasHours ? '${hours}h ' : ''}${hasMins ? '${mins}m ' : ''}${secs}s', size: widget.size);

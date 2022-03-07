@@ -85,6 +85,7 @@ class MyApp extends StatelessWidget {
       icon: const Color.fromRGBO(255, 255, 255, 0.5),
       indicatorDark: const Color.fromRGBO(14, 14, 15, 1),
       indicatorLight: const Color.fromRGBO(55, 57, 61, 1),
+      error: const Color(0xFFC62222),
     );
 
     return MultiProvider(

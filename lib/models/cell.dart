@@ -15,11 +15,24 @@ class Cell {
   final int row;
   final int col;
 
+  /// Whether this cell has been marked as invalid.
+  ///
+  /// The player can check validity, and if the settings to show invalid cells
+  /// after check is true, incorrect cells will be visually shown. This is reset
+  /// when they modify the cell in any way.
+  bool markedInvalid;
+
   /// The lines (thermos, german whisper, etc.) this cell belongs to
   final List<Line> lines = [];
 
-  Cell({required this.row, required this.col, int digit = 0, List<int>? candidates, this.isClue = false})
-      : _digit = digit {
+  Cell({
+    required this.row,
+    required this.col,
+    int digit = 0,
+    List<int>? candidates,
+    this.isClue = false,
+    this.markedInvalid = false,
+  }) : _digit = digit {
     if (candidates != null) this.candidates.addAll(candidates);
   }
 
@@ -38,6 +51,7 @@ class Cell {
   set digit(int digit) {
     // TODO: check for some kind of 'clear candidates' option
     candidates.clear();
+    markedInvalid = false;
     _digit = digit;
   }
 

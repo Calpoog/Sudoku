@@ -11,6 +11,7 @@ class ThemeColors {
   final Color icon;
   final Color indicatorDark;
   final Color indicatorLight;
+  final Color error;
 
   ThemeColors({
     required this.background,
@@ -23,5 +24,6 @@ class ThemeColors {
     required this.icon,
     required this.indicatorDark,
     required this.indicatorLight,
+    required this.error,
   });
 }
