@@ -29,17 +29,17 @@ class SudokuPage extends StatefulWidget {
 class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateMixin {
   final _focus = FocusNode();
   late Future<SudokuGame> _future;
-  late final AnimationController _controller = AnimationController(
+  late final AnimationController _entryController = AnimationController(
     duration: const Duration(seconds: 1),
     vsync: this,
   );
-  late final Animation<double> _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+  late final Animation<double> _animation = CurvedAnimation(parent: _entryController, curve: Curves.easeOut);
 
   @override
   void initState() {
     super.initState();
     _fetch();
-    _controller.forward();
+    _entryController.forward();
     _future.then((game) {
       game.timer.start();
     });

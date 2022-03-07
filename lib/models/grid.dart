@@ -125,7 +125,8 @@ class Grid {
   factory Grid.fromJSON(Map<String, dynamic> json, {int size = 3}) {
     return Grid._internal(
       cells: _deserealizeCells(json['cells']),
-      solution: (json['solution'] as String).split('').map((d) => int.parse(d)).toList(),
+      solution:
+          json['solution'] == null ? null : (json['solution'] as String).split('').map((d) => int.parse(d)).toList(),
       size: size,
       thermos: json['thermos'],
     );
