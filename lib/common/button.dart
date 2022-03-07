@@ -35,13 +35,13 @@ class Button extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         color: isActive ? colors.accent : colors.button,
-        borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+        borderRadius: BorderRadius.all(Radius.circular(size * 0.2)),
         border: Border.all(color: isActive ? colors.accent : colors.outline),
       ),
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          borderRadius: BorderRadius.all(Radius.circular(size * 0.2)),
           splashColor: colors.accent,
           onTap: () {
             HapticFeedback.lightImpact();

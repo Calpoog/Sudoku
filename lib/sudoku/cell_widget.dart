@@ -112,16 +112,15 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
     final isSelected = game.selectedCell == cell;
     final matchDigit = game.selectedCell?.digit ?? 0;
     final isMatch = matchDigit > 0 && (cell.digit == matchDigit || cell.candidates.contains(matchDigit));
+    final markedInvalid = cell.markedInvalid && cell.digit > 0;
     final indicatorColor = isSelected
         ? colors.accent
-        : cell.markedInvalid && cell.digit != 0
-            ? colors.error
-            : isMatch && settings.showMatchingNumbers
-                ? colors.indicatorDark
-                : cell.isClue && settings.indicateStartingHints
-                    ? colors.indicatorLight.withOpacity(0.5)
-                    : Colors.transparent;
-    final hasIndicator = indicatorColor != Colors.transparent;
+        : isMatch && settings.showMatchingNumbers
+            ? colors.indicatorDark
+            : cell.isClue && settings.indicateStartingHints
+                ? colors.indicatorLight.withOpacity(0.5)
+                : Colors.transparent;
+    final hasIndicator = indicatorColor != Colors.transparent || markedInvalid;
 
     return Stack(
       alignment: Alignment.center,
@@ -135,7 +134,8 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
           height: widget.size * (hasIndicator ? 0.8 : 0.4),
           decoration: BoxDecoration(
             color: indicatorColor,
-            borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+            borderRadius: BorderRadius.all(Radius.circular(widget.size * 0.2)),
+            border: markedInvalid ? Border.all(color: colors.error, width: 2) : null,
           ),
         ),
         cell.digit > 0
