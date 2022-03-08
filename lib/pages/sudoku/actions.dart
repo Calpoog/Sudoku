@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../common/button.dart';
 import '../../common/colors.dart';
+import '../../common/modal.dart';
+import '../../common/text.dart';
 import '../../models/game.dart';
 
 class GameActions extends StatelessWidget {
@@ -34,7 +36,12 @@ class GameActions extends StatelessWidget {
                 'assets/icons/board.svg',
                 width: buttonSize * 0.45,
               ),
-              onPressed: () => game.restart(),
+              onPressed: () {
+                Modal(
+                  message: 'Are you sure about that?',
+                  onSuccess: () => game.restart(),
+                ).show(context);
+              },
             ),
             SizedBox(width: spacing),
             Button(

@@ -58,17 +58,7 @@ class MyApp extends StatelessWidget {
       ),
     ],
     navigatorBuilder: (context, routerState, child) => Scaffold(
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: LayoutBuilder(builder: (context, constraints) {
-            return ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: min(constraints.maxWidth, 9 / 16 * constraints.maxHeight)),
-              child: child,
-            );
-          }),
-        ),
-      ),
+      body: child,
     ),
   );
 
@@ -116,7 +106,17 @@ class PageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child;
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: LayoutBuilder(builder: (context, constraints) {
+          return ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: min(constraints.maxWidth, 9 / 16 * constraints.maxHeight)),
+            child: child,
+          );
+        }),
+      ),
+    );
   }
 }
 

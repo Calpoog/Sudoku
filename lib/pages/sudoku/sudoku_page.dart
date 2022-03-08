@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import '../../common/button.dart';
 import '../../common/colors.dart';
 import '../../common/header.dart';
-import '../../common/spacing.dart';
 import '../../models/game.dart';
 import '../../sudoku/constants.dart';
 import '../../sudoku/grid_widget.dart';

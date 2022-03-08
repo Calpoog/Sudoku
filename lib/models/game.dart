@@ -117,12 +117,12 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearCell({Cell? cell, bool notify = true}) {
+  void clearCell({Cell? cell, bool notify = true, bool select = true}) {
     if (cell != null && !cell.isClue) {
       cell.clear();
       // this duplicates setting digit to 0 but also deals with history
       _setDigit(cell, 0);
-      selectedCell = cell;
+      if (select) selectedCell = cell;
     } else if (selectedCell != null && !selectedCell!.isClue) {
       _setDigit(selectedCell!, 0);
     }
@@ -132,7 +132,7 @@ class SudokuGame extends ChangeNotifier {
 
   void restart() {
     for (var cell in grid.cells) {
-      clearCell(cell: cell, notify: false);
+      clearCell(cell: cell, notify: false, select: false);
     }
     notifyListeners();
   }
