@@ -1,3 +1,5 @@
+import 'package:sudoku_api/sudoku_api.dart' as sudoku;
+
 import 'box.dart';
 import 'dart:math';
 import 'package:collection/collection.dart';
@@ -130,6 +132,30 @@ class Grid {
       size: size,
       thermos: json['thermos'],
     );
+  }
+
+  static Future<Grid> generate(int clues) async {
+    final puzzle = sudoku.Puzzle(sudoku.PuzzleOptions(clues: clues));
+    await puzzle.generate();
+    final string = puzzle.board()!.matrix()!.fold<String>(
+        '',
+        (previousValue, row) =>
+            previousValue +
+            row.map(
+              (c) {
+                final val = c.getValue();
+                return val != null && val > 0 ? 'c$val' : '0';
+              },
+            ).join(''));
+
+    return Grid.fromJSON({
+      'cells': string,
+      'solution': puzzle
+          .solvedBoard()!
+          .matrix()!
+          .fold<String>('', (previousValue, row) => previousValue + row.map((c) => c.getValue() ?? '0').join('')),
+      'size': 3,
+    });
   }
 
   /// Whether the entire grid is valid according to the current state

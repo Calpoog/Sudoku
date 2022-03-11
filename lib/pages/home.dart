@@ -52,8 +52,8 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 20.0),
             child: Column(
               children: [
-                _buildItem(context, 'board', 'NEW GAME', () {
-                  final newGame = SudokuGame.fresh();
+                _buildItem(context, 'board', 'NEW GAME', () async {
+                  final newGame = await SudokuGame.create(17);
                   newGame.save();
                   context.goNamed('sudoku', params: {'id': newGame.id}, extra: newGame);
                 }),

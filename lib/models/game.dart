@@ -33,7 +33,7 @@ class SudokuGame extends ChangeNotifier {
     timer = PlayTimer(initialSeconds);
   }
 
-  factory SudokuGame.fresh() {
+  factory SudokuGame.hardcoded() {
     return SudokuGame._internal(
       title: DateTime.now().toString(),
       grid: Grid.fromJSON({
@@ -41,6 +41,14 @@ class SudokuGame extends ChangeNotifier {
             '0[1234]c4c301c20c900c500c900c10c700c600c4c300c600c20c8c7c1c9000c7c4000c500c8c3000c600000c10c500c3c50c8c6c900c4c2c9c10c300',
         'solution': '864371259325849761971265843436192587198657432257483916689734125713528694542916378',
       }),
+      id: const Uuid().v4(),
+    );
+  }
+
+  static Future<SudokuGame> create(int clues) async {
+    return SudokuGame._internal(
+      title: DateTime.now().toString(),
+      grid: await Grid.generate(clues),
       id: const Uuid().v4(),
     );
   }
@@ -86,18 +94,22 @@ class SudokuGame extends ChangeNotifier {
   }
 
   void up() {
+    if (selectedCell == null) return;
     move(selectedCell!.col, max(0, selectedCell!.row - 1));
   }
 
   void down() {
+    if (selectedCell == null) return;
     move(selectedCell!.col, min(grid.size * grid.size - 1, selectedCell!.row + 1));
   }
 
   void left() {
+    if (selectedCell == null) return;
     move(max(0, selectedCell!.col - 1), selectedCell!.row);
   }
 
   void right() {
+    if (selectedCell == null) return;
     move(min(grid.size * grid.size - 1, selectedCell!.col + 1), selectedCell!.row);
   }
 

@@ -16,9 +16,9 @@ import 'actions.dart';
 import 'clock.dart';
 
 class SudokuPage extends StatefulWidget {
-  const SudokuPage({Key? key, required this.id, this.game}) : super(key: key);
+  const SudokuPage({Key? key, this.id, this.game}) : super(key: key);
 
-  final String id;
+  final String? id;
   final SudokuGame? game;
 
   @override
@@ -40,6 +40,7 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
     _fetch();
     _entryController.forward();
     _future.then((game) {
+      game.save();
       game.timer.start();
     });
     WidgetsBinding.instance!.addObserver(this);
@@ -56,8 +57,10 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
   void _fetch() {
     if (widget.game != null) {
       _future = Future.value(widget.game);
+    } else if (widget.id == null) {
+      _future = SudokuGame.create(25);
     } else {
-      _future = ManageSaves.loadGame(widget.id);
+      _future = ManageSaves.loadGame(widget.id!);
     }
   }
 
