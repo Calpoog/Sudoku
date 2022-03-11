@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../common/button.dart';
 import '../../common/colors.dart';
 import '../../common/modal.dart';
-import '../../common/text.dart';
 import '../../models/game.dart';
 
 class GameActions extends StatelessWidget {
@@ -52,7 +51,14 @@ class GameActions extends StatelessWidget {
                 'assets/icons/check.svg',
                 width: buttonSize * 0.45,
               ),
-              onPressed: () => game.check(),
+              onPressed: () {
+                Modal(
+                  message:
+                      'When you check and the board is incorrect, your score will be moved to a separate leaderboard.',
+                  acceptText: 'Check',
+                  onSuccess: () => game.check(),
+                ).show(context);
+              },
             ),
             SizedBox(width: spacing),
             Button(

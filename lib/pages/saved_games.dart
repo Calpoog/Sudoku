@@ -11,6 +11,7 @@ import '../common/text.dart';
 import '../models/game.dart';
 import '../sudoku/grid_widget.dart';
 import '../utils/saves.dart';
+import 'sudoku/clock.dart';
 
 const kSavedGameMaxTileWidth = 350.0;
 
@@ -99,7 +100,7 @@ class SavedGameTile extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       AppText(DateFormat.MEd().format(game.lastPlayed!)),
-                      AppText(game.timer.currentDuration.inSeconds.toString()),
+                      AppText(Clock.format(game.timer.currentDuration.inSeconds)),
                     ],
                   ),
                 ],

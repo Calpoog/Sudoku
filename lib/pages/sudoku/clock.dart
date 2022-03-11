@@ -13,6 +13,15 @@ class Clock extends StatefulWidget {
 
   @override
   State<Clock> createState() => _ClockState();
+
+  static String format(int seconds) {
+    final hours = (seconds / 3600).floor();
+    final hasHours = hours > 0;
+    final mins = (seconds / 60).floor() % 60;
+    final hasMins = mins > 0;
+    final secs = seconds % 60;
+    return '${hasHours ? '${hours}h ' : ''}${hasMins ? '${mins}m ' : ''}${secs}s';
+  }
 }
 
 class _ClockState extends State<Clock> {
@@ -29,13 +38,7 @@ class _ClockState extends State<Clock> {
 
   @override
   Widget build(BuildContext context) {
-    final seconds = timer.currentDuration.inSeconds;
-    final hours = (seconds / 3600).floor();
-    final hasHours = hours > 0;
-    final mins = (seconds / 60).floor() % 60;
-    final hasMins = mins > 0;
-    final secs = seconds % 60;
-    return AppText('${hasHours ? '${hours}h ' : ''}${hasMins ? '${mins}m ' : ''}${secs}s', size: widget.size);
+    return AppText(Clock.format(timer.currentDuration.inSeconds), size: widget.size);
   }
 
   @override
