@@ -28,35 +28,37 @@ class SavedGames extends StatelessWidget {
       children: [
         const AppHeader(title: 'Saved games'),
         Expanded(
-          child: FutureBuilder(
-            future: savedGames,
-            builder: (context, AsyncSnapshot<List<SudokuGame>> snapshot) {
-              if (snapshot.hasData) {
-                final games = snapshot.data!;
-                final count = games.length;
-                final screenWidth = MediaQuery.of(context).size.width;
-                final crossAxisCount = (screenWidth / kSavedGameMaxTileWidth).floor();
-                return ListView.builder(
-                  itemCount: (count / crossAxisCount).ceil(),
-                  itemBuilder: (context, index) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        for (int i = index * crossAxisCount; i < min(count, crossAxisCount * (index + 1)); i++)
-                          Container(
-                            width: kSavedGameMaxTileWidth,
-                            padding: const EdgeInsets.all(10.0),
-                            child: SavedGameTile(game: games[i]),
-                          ),
-                      ],
-                    );
-                  },
-                );
-              } else {
-                return const CircularProgressIndicator.adaptive();
-              }
-            },
-          ),
+          child: LayoutBuilder(builder: (context, constraints) {
+            return FutureBuilder(
+              future: savedGames,
+              builder: (context, AsyncSnapshot<List<SudokuGame>> snapshot) {
+                if (snapshot.hasData) {
+                  final games = snapshot.data!;
+                  final count = games.length;
+                  final screenWidth = constraints.maxWidth;
+                  final crossAxisCount = (screenWidth / kSavedGameMaxTileWidth).floor();
+                  return ListView.builder(
+                    itemCount: (count / crossAxisCount).ceil(),
+                    itemBuilder: (context, index) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          for (int i = index * crossAxisCount; i < min(count, crossAxisCount * (index + 1)); i++)
+                            Container(
+                              width: kSavedGameMaxTileWidth,
+                              padding: const EdgeInsets.all(10.0),
+                              child: SavedGameTile(game: games[i]),
+                            ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  return const CircularProgressIndicator.adaptive();
+                }
+              },
+            );
+          }),
         ),
       ],
     );

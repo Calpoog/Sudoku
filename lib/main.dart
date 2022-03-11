@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'common/header.dart';
 import 'models/settings.dart';
 import 'pages/home.dart';
 import 'pages/saved_games.dart';
@@ -36,7 +35,7 @@ class MyApp extends StatelessWidget {
             path: 'games',
             name: 'games',
             pageBuilder: (context, state) => transition(
-              const PageWrapper(child: SavedGames()),
+              const SavedGames(),
             ),
           ),
           GoRoute(
