@@ -52,24 +52,31 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 20.0),
             child: Column(
               children: [
-                _buildItem(context, 'board', 'NEW GAME', () async {
-                  final newGame = await SudokuGame.create(17);
-                  newGame.save();
-                  context.goNamed('sudoku', params: {'id': newGame.id}, extra: newGame);
-                }),
-                _buildItem(
-                  context,
-                  'saved-games',
-                  'SAVED GAMES',
-                  () => context.goNamed('games'),
+                HomeLink(
+                    icon: 'board',
+                    text: 'NEW GAME',
+                    onPressed: () async {
+                      final newGame = await SudokuGame.create(17);
+                      newGame.save();
+                      context.goNamed('sudoku', params: {'id': newGame.id}, extra: newGame);
+                    }),
+                HomeLink(
+                  icon: 'saved-games',
+                  text: 'SAVED GAMES',
+                  onPressed: () => context.goNamed('games'),
                 ),
-                _buildItem(context, 'multiplayer', 'MULTIPLAYER'),
-                _buildItem(context, 'maker', 'MAKER'),
-                _buildItem(
-                  context,
-                  'settings',
-                  'SETTINGS',
-                  () => context.goNamed('settings'),
+                const HomeLink(
+                  icon: 'multiplayer',
+                  text: 'MULTIPLAYER',
+                ),
+                const HomeLink(
+                  icon: 'maker',
+                  text: 'MAKER',
+                ),
+                HomeLink(
+                  icon: 'settings',
+                  text: 'SETTINGS',
+                  onPressed: () => context.goNamed('settings'),
                 ),
               ],
             ),
@@ -78,8 +85,17 @@ class HomePage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildItem(BuildContext context, String icon, String text, [VoidCallback? onPressed]) {
+class HomeLink extends StatelessWidget {
+  const HomeLink({Key? key, this.onPressed, required this.icon, required this.text}) : super(key: key);
+
+  final VoidCallback? onPressed;
+  final String icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: onPressed,
