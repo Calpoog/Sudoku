@@ -25,7 +25,7 @@ class SudokuPage extends StatefulWidget {
   State<SudokuPage> createState() => _SudokuPageState();
 }
 
-class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateMixin {
+class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _focus = FocusNode();
   late Future<SudokuGame> _future;
   late final AnimationController _entryController = AnimationController(
@@ -42,6 +42,7 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
     _future.then((game) {
       game.timer.start();
     });
+    WidgetsBinding.instance!.addObserver(this);
   }
 
   @override
@@ -140,9 +141,28 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _future.then((game) {
+        game.timer.start();
+      });
+    } else {
+      _save();
+    }
+  }
+
+  _save() {
+    _future.then((game) {
+      game.timer.stop();
+      game.save();
+    });
+  }
+
+  @override
   void dispose() {
-    _future.then((game) => game.timer.stop());
+    _save();
     _focus.dispose();
+    WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
 }

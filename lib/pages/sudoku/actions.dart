@@ -38,7 +38,8 @@ class GameActions extends StatelessWidget {
               ),
               onPressed: () {
                 Modal(
-                  message: 'Are you sure about that?',
+                  message: "This will clear all your work but won't reset your time. Are you sure you want to restart?",
+                  acceptText: 'Restart',
                   onSuccess: () => game.restart(),
                 ).show(context);
               },
