@@ -7,6 +7,7 @@
 import 'dart:collection';
 
 import 'grid.dart';
+import 'settings.dart';
 
 class Cell {
   int _digit;
@@ -42,15 +43,17 @@ class Cell {
   }
 
   clear() {
+    if (digit == 0) {
+      candidates.clear();
+    }
     digit = 0;
-    // TODO: check for some kind of 'clear candidates' option
-    candidates.clear();
   }
 
   // This assumes we want to delete the candidates when the user chooses a digit
   set digit(int digit) {
-    // TODO: check for some kind of 'clear candidates' option
-    candidates.clear();
+    if (settings.clearPencilOnDigit) {
+      candidates.clear();
+    }
     markedInvalid = false;
     _digit = digit;
   }

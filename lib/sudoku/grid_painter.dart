@@ -27,7 +27,6 @@ class GridPainter extends StatelessWidget {
         grid: game.grid,
         selectedCell: game.selectedCell,
         colors: colors,
-        settings: context.watch<Settings>(),
       ),
     );
   }
@@ -38,14 +37,12 @@ class GridCustomPainter extends CustomPainter {
   final Grid grid;
   final ThemeColors colors;
   final Cell? selectedCell;
-  final Settings settings;
 
   GridCustomPainter({
     required this.cellSize,
     required this.grid,
     required this.selectedCell,
     required this.colors,
-    required this.settings,
   });
 
   double _getOffset(int i) {

@@ -99,7 +99,7 @@ class DigitButton extends StatelessWidget {
               digit.toString(),
               size: size * 0.6,
             ),
-            if (context.watch<Settings>().showRemainingCount)
+            if (settings.showRemainingCount)
               Positioned(
                 bottom: size * 0.1,
                 right: size * 0.1,

@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/saves.dart';
 
+final settings = Settings();
+
 class Settings extends ChangeNotifier {
   bool _showMatchingNumbers = false;
   set showMatchingNumbers(bool value) {
@@ -37,6 +39,14 @@ class Settings extends ChangeNotifier {
   }
 
   bool get showRemainingCount => _showRemainingCount;
+
+  bool _clearPencilOnDigit = false;
+  set clearPencilOnDigit(bool value) {
+    _clearPencilOnDigit = value;
+    _save();
+  }
+
+  bool get clearPencilOnDigit => _clearPencilOnDigit;
 
   _save() {
     ManageSaves.saveSettings(this);

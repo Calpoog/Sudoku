@@ -106,7 +106,6 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final game = context.watch<SudokuGame>();
-    final settings = context.watch<Settings>();
     final colors = context.read<ThemeColors>();
     final cell = widget.cell;
     final isSelected = game.selectedCell == cell;

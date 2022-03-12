@@ -17,6 +17,7 @@ void main() {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
   // SystemChrome.restoreSystemUIOverlays();
+  settings.load();
 
   runApp(MyApp());
 }
@@ -80,7 +81,6 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider.value(value: colors),
-        ChangeNotifierProvider(create: (context) => Settings()..load()),
       ],
       child: MaterialApp.router(
         title: 'Flutter Demo',
