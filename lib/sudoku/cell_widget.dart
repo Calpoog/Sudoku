@@ -10,6 +10,7 @@ import '../common/text.dart';
 import '../models/cell.dart';
 import '../models/game.dart';
 import '../models/settings.dart';
+import '../pages/sudoku/sudoku_page.dart';
 
 class CellWidget extends StatelessWidget {
   const CellWidget(this.cell, {Key? key, required this.size, this.isPreview = false}) : super(key: key);
@@ -57,11 +58,15 @@ class AnimatedCell extends StatefulWidget {
   State<AnimatedCell> createState() => _AnimatedCellState();
 }
 
+const kCompleteAnimationFactor = 0.8;
+
 class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late SudokuGame game;
+  late final random = Random();
   int? clearingDigit;
   double horizontalSpeed = 0;
+  bool isDone = false;
 
   @override
   void didUpdateWidget(covariant AnimatedCell oldWidget) {
@@ -77,9 +82,27 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
     super.initState();
     _controller = AnimationController(vsync: this, upperBound: 300, lowerBound: -1000);
     _controller.addStatusListener(_clearFinished);
+    completeNotifier.addListener(_completeListener);
   }
 
-  _startClearAnimation() {
+  void _completeListener() {
+    // final start = max((widget.cell.col - 4).abs(), (widget.cell.row - 4).abs()) * 150;
+    final start = (sqrt(pow(widget.cell.col - 4, 2) + pow(widget.cell.row - 4, 2)) * 150).toInt();
+
+    Future.delayed(Duration(milliseconds: (start * kCompleteAnimationFactor).toInt()), () {
+      setState(() {
+        isDone = true;
+      });
+    });
+
+    Future.delayed(Duration(milliseconds: ((start + 500) * kCompleteAnimationFactor).toInt()), () {
+      setState(() {
+        isDone = false;
+      });
+    });
+  }
+
+  void _startClearAnimation() {
     horizontalSpeed = Random().nextDouble() * 0.2 - 0.1;
     _controller.animateWith(GravitySimulation(
       300.0, // acceleration, pixels per second per second
@@ -89,7 +112,7 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
     ));
   }
 
-  _clearFinished(AnimationStatus status) {
+  void _clearFinished(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
       setState(() {
         clearingDigit = null;
@@ -101,6 +124,7 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
   void dispose() {
     super.dispose();
     _controller.dispose();
+    completeNotifier.removeListener(_completeListener);
   }
 
   @override
@@ -127,7 +151,7 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
         SizedBox(width: widget.size, height: widget.size),
         // indicator
         AnimatedContainer(
-          curve: Curves.easeInOut,
+          curve: Curves.easeOut,
           duration: const Duration(milliseconds: 200),
           width: widget.size * (hasIndicator ? 0.8 : 0.4),
           height: widget.size * (hasIndicator ? 0.8 : 0.4),
@@ -137,13 +161,28 @@ class _AnimatedCellState extends State<AnimatedCell> with SingleTickerProviderSt
             border: markedInvalid ? Border.all(color: colors.error, width: 2) : null,
           ),
         ),
+        AnimatedContainer(
+          curve: isDone ? Curves.easeIn : Curves.easeOut,
+          duration: Duration(milliseconds: (300 * kCompleteAnimationFactor).toInt()),
+          width: widget.size * (isDone ? 0.8 : 0.6),
+          height: widget.size * (isDone ? 0.8 : 0.6),
+          decoration: BoxDecoration(
+            color: isDone ? colors.accent : Colors.transparent,
+            borderRadius: BorderRadius.all(Radius.circular(widget.size * 0.2)),
+          ),
+        ),
         cell.digit > 0
             ? Opacity(
                 opacity: widget.cell.isClue ? 0.7 : 1,
-                child: AppText(
-                  cell.digit.toString().replaceAll('0', ''),
-                  size: widget.size * 0.5,
-                  weight: FontWeight.w300,
+                child: AnimatedScale(
+                  curve: isDone ? Curves.easeIn : Curves.easeOut,
+                  duration: Duration(milliseconds: (400 * kCompleteAnimationFactor).toInt()),
+                  scale: isDone ? 1.3 : 1,
+                  child: AppText(
+                    cell.digit.toString().replaceAll('0', ''),
+                    size: widget.size * 0.5,
+                    weight: FontWeight.w300,
+                  ),
                 ),
               )
             : Container(

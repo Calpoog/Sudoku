@@ -67,8 +67,14 @@ class SudokuGame extends ChangeNotifier {
   }
 
   /// Checks if the board is valid
-  void check() {
-    grid.check();
+  bool check() {
+    final isComplete = grid.check();
+    notifyListeners();
+    return isComplete;
+  }
+
+  void solve() {
+    grid.solve();
     notifyListeners();
   }
 

@@ -186,6 +186,14 @@ class Grid {
     return isValid;
   }
 
+  void solve() {
+    if (solution == null) return;
+
+    for (int i = 0; i < cells.length; i++) {
+      cells[i].digit = solution![i];
+    }
+  }
+
   /// Checks only the validity of a [Cell] based on the rows/cols/boxes/thermos/cages it is in
   bool isCellValid(Cell cell) {
     if (solution != null) {

@@ -15,6 +15,16 @@ import '../../utils/saves.dart';
 import 'actions.dart';
 import 'clock.dart';
 
+final completeNotifier = CompleteNotifier();
+
+class CompleteNotifier extends ChangeNotifier {
+  CompleteNotifier();
+
+  void complete() {
+    notifyListeners();
+  }
+}
+
 class SudokuPage extends StatefulWidget {
   const SudokuPage({Key? key, this.id, this.game}) : super(key: key);
 
@@ -43,6 +53,7 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
       game.save();
       game.timer.start();
     });
+
     WidgetsBinding.instance!.addObserver(this);
   }
 
@@ -66,8 +77,6 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.read<ThemeColors>();
-
     return FutureBuilder(
       future: _future,
       builder: (context, AsyncSnapshot<SudokuGame> snapshot) {
@@ -130,7 +139,14 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                           ),
                         ),
                         const SizedBox(height: 30.0),
-                        const Expanded(child: SudokuControls())
+                        Expanded(
+                          child: SudokuControls(
+                            onComplete: () {
+                              game.solve();
+                              completeNotifier.complete();
+                            },
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -171,10 +187,16 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
 }
 
 class SudokuControls extends StatelessWidget {
-  const SudokuControls({Key? key, this.showActions = true, this.buttonSize}) : super(key: key);
+  const SudokuControls({
+    Key? key,
+    this.showActions = true,
+    this.buttonSize,
+    this.onComplete,
+  }) : super(key: key);
 
   final bool showActions;
   final double? buttonSize;
+  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -207,7 +229,11 @@ class SudokuControls extends StatelessWidget {
               ],
             ),
           ),
-          if (showActions) GameActions(buttonSize: buttonSize),
+          if (showActions)
+            GameActions(
+              buttonSize: buttonSize,
+              onComplete: onComplete,
+            ),
         ],
       );
     });

@@ -11,9 +11,11 @@ class GameActions extends StatelessWidget {
   const GameActions({
     Key? key,
     required this.buttonSize,
+    this.onComplete,
   }) : super(key: key);
 
   final double buttonSize;
+  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +67,9 @@ class GameActions extends StatelessWidget {
               text: 'Multi',
               size: buttonSize,
               child: Icon(Icons.undo, color: colors.icon),
-              onPressed: () {},
+              onPressed: () {
+                if (onComplete != null) onComplete!();
+              },
             ),
             SizedBox(width: spacing),
             Button(

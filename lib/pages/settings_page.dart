@@ -67,50 +67,53 @@ class SettingsPage extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: SingleChildScrollView(
-                  child: Consumer<Settings>(
-                    builder: (context, settings, _) => Column(
-                      children: [
-                        ListTile(
-                          contentPadding: const EdgeInsets.all(8.0),
-                          title: const AppText('Show matching numbers'),
-                          onTap: () {
-                            settings.showMatchingNumbers = !settings.showMatchingNumbers;
-                          },
-                          trailing: SettingsCheckbox(isChecked: settings.showMatchingNumbers),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.all(8.0),
-                          title: const AppText('Highlight selected row & column'),
-                          onTap: () {
-                            settings.highlightRowColumn = !settings.highlightRowColumn;
-                          },
-                          trailing: SettingsCheckbox(isChecked: settings.highlightRowColumn),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.all(8.0),
-                          title: const AppText('Indicate starting clues'),
-                          onTap: () {
-                            settings.indicateStartingHints = !settings.indicateStartingHints;
-                          },
-                          trailing: SettingsCheckbox(isChecked: settings.indicateStartingHints),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.all(8.0),
-                          title: const AppText('Show remaining number count'),
-                          onTap: () {
-                            settings.showRemainingCount = !settings.showRemainingCount;
-                          },
-                          trailing: SettingsCheckbox(isChecked: settings.showRemainingCount),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.all(8.0),
-                          title: const AppText('Clear pencil markup when filling cell'),
-                          onTap: () {
-                            settings.clearPencilOnDigit = !settings.clearPencilOnDigit;
-                          },
-                          trailing: SettingsCheckbox(isChecked: settings.clearPencilOnDigit),
-                        ),
-                      ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Consumer<Settings>(
+                      builder: (context, settings, _) => Column(
+                        children: [
+                          ListTile(
+                            contentPadding: const EdgeInsets.all(8.0),
+                            title: const AppText('Show matching numbers'),
+                            onTap: () {
+                              settings.showMatchingNumbers = !settings.showMatchingNumbers;
+                            },
+                            trailing: SettingsCheckbox(isChecked: settings.showMatchingNumbers),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.all(8.0),
+                            title: const AppText('Highlight selected row & column'),
+                            onTap: () {
+                              settings.highlightRowColumn = !settings.highlightRowColumn;
+                            },
+                            trailing: SettingsCheckbox(isChecked: settings.highlightRowColumn),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.all(8.0),
+                            title: const AppText('Indicate starting clues'),
+                            onTap: () {
+                              settings.indicateStartingHints = !settings.indicateStartingHints;
+                            },
+                            trailing: SettingsCheckbox(isChecked: settings.indicateStartingHints),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.all(8.0),
+                            title: const AppText('Show remaining number count'),
+                            onTap: () {
+                              settings.showRemainingCount = !settings.showRemainingCount;
+                            },
+                            trailing: SettingsCheckbox(isChecked: settings.showRemainingCount),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.all(8.0),
+                            title: const AppText('Clear pencil markup when filling cell'),
+                            onTap: () {
+                              settings.clearPencilOnDigit = !settings.clearPencilOnDigit;
+                            },
+                            trailing: SettingsCheckbox(isChecked: settings.clearPencilOnDigit),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
