@@ -78,6 +78,10 @@ class SudokuGame extends ChangeNotifier {
     notifyListeners();
   }
 
+  void deselect() {
+    selectedCell = null;
+  }
+
   void select(Cell cell) {
     if (selectedCell == cell) {
       selectedCell = null;

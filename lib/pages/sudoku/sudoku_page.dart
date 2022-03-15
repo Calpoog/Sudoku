@@ -18,9 +18,12 @@ import 'clock.dart';
 final completeNotifier = CompleteNotifier();
 
 class CompleteNotifier extends ChangeNotifier {
+  bool isComplete = false;
+
   CompleteNotifier();
 
   void complete() {
+    isComplete = true;
     notifyListeners();
   }
 }
@@ -46,6 +49,7 @@ class SudokuPage extends StatefulWidget {
 
 class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _focus = FocusNode();
+  bool isComplete = false;
   late Future<SudokuGame> _future;
   late final _entry = SudokuEntryAnimation(vsync: this);
   late var animation = CurvedAnimation(
@@ -127,51 +131,59 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
               builder: (context, constraints) {
                 final game = context.read<SudokuGame>();
 
-                return AnimatedBuilder(
-                  animation: animation,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: constraints.maxWidth, maxHeight: constraints.maxWidth),
-                    child: GridWidget(game.grid),
-                  ),
-                  builder: (context, child) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const AppHeader(
-                          title: 'Sudoku',
-                          trailing: Padding(
-                            padding: EdgeInsets.only(top: 6.0),
-                            child: Clock(size: 14),
-                          ),
+                return IgnorePointer(
+                  ignoring: isComplete,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const AppHeader(
+                        title: 'Sudoku',
+                        trailing: Padding(
+                          padding: EdgeInsets.only(top: 6.0),
+                          child: Clock(size: 14),
                         ),
-                        Center(
-                          child: Transform.translate(
-                            offset: Offset(0, 50 * (1 - animation.value)),
-                            child: Opacity(
-                              opacity: _entry.controller.status != AnimationStatus.forward ? 1 : animation.value,
-                              child: child,
-                            ),
+                      ),
+                      Center(
+                        child: AnimatedBuilder(
+                          animation: animation,
+                          child: ConstrainedBox(
+                            constraints:
+                                BoxConstraints(maxWidth: constraints.maxWidth, maxHeight: constraints.maxWidth),
+                            child: GridWidget(game.grid),
                           ),
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: Offset(0, 50 * (1 - animation.value)),
+                              child: Opacity(
+                                opacity: _entry.controller.status != AnimationStatus.forward ? 1 : animation.value,
+                                child: child,
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 30.0),
-                        Expanded(
-                          child: SudokuControls(
-                            onComplete: () {
+                      ),
+                      const SizedBox(height: 30.0),
+                      Expanded(
+                        child: SudokuControls(
+                          onComplete: () {
+                            setState(() {
+                              isComplete = true;
                               completeNotifier.complete();
                               game
+                                ..deselect()
                                 ..stopTimer()
                                 ..save();
                               Future.delayed(
                                 const Duration(milliseconds: 600),
                                 () => _entry.controller.reverse(),
                               );
-                            },
-                          ),
+                            });
+                          },
                         ),
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

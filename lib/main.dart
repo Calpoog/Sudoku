@@ -120,8 +120,16 @@ class PageWrapper extends StatelessWidget {
 }
 
 Page transition(Widget child) {
+  // return MaterialPage(child: child);
   return CustomTransitionPage(
     child: child,
-    transitionsBuilder: (_, animation, ____, child) => FadeTransition(opacity: animation, child: child),
+    transitionDuration: const Duration(milliseconds: 500),
+    transitionsBuilder: (_, enter, leave, child) => SlideTransition(
+      position: Tween(begin: const Offset(1, 0), end: Offset.zero).animate(enter),
+      child: SlideTransition(
+        position: Tween(begin: Offset.zero, end: const Offset(-1, 0)).animate(leave),
+        child: child,
+      ),
+    ),
   );
 }

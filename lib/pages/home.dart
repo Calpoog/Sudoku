@@ -53,13 +53,14 @@ class HomePage extends StatelessWidget {
             child: Column(
               children: [
                 HomeLink(
-                    icon: 'board',
-                    text: 'NEW GAME',
-                    onPressed: () async {
-                      final newGame = await SudokuGame.create(17);
-                      newGame.save();
-                      context.goNamed('sudoku', params: {'id': newGame.id}, extra: newGame);
-                    }),
+                  icon: 'board',
+                  text: 'NEW GAME',
+                  onPressed: () async {
+                    final newGame = await SudokuGame.create(17);
+                    newGame.save();
+                    context.goNamed('sudoku', params: {'id': newGame.id}, extra: newGame);
+                  },
+                ),
                 HomeLink(
                   icon: 'saved-games',
                   text: 'SAVED GAMES',
