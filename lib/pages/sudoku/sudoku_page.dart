@@ -155,6 +155,10 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                             onComplete: () {
                               game.solve();
                               completeNotifier.complete();
+                              Future.delayed(
+                                const Duration(milliseconds: 600),
+                                () => _entry.controller.reverse(),
+                              );
                             },
                           ),
                         ),
