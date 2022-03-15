@@ -31,46 +31,46 @@ class SettingsPage extends StatelessWidget {
           ChangeNotifierProvider.value(value: settings),
         ],
         builder: (context, child) {
-          return Column(
-            children: [
-              const AppHeader(title: 'Settings'),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  alignment: Alignment.center,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+          return Consumer<Settings>(builder: (context, settings, _) {
+            return Column(
+              children: [
+                const AppHeader(title: 'Settings'),
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(),
+                      borderRadius: const BorderRadius.all(Radius.circular(6.0)),
+                    ),
+                    padding: const EdgeInsets.all(10.0),
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      debugPrint(constraints.maxHeight.toString());
+                      final buttonSize = constraints.maxHeight / 8.8;
+                      final width = 6.2 * buttonSize;
+                      return SizedBox(
+                        width: width,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GridWidget(game.grid),
+                            SudokuControls(
+                              showActions: false,
+                              buttonSize: buttonSize * 0.8,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ),
-                  padding: const EdgeInsets.all(10.0),
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    debugPrint(constraints.maxHeight.toString());
-                    final buttonSize = constraints.maxHeight / 8.8;
-                    final width = 6.2 * buttonSize;
-                    return SizedBox(
-                      width: width,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GridWidget(game.grid),
-                          SudokuControls(
-                            showActions: false,
-                            buttonSize: buttonSize * 0.8,
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
                 ),
-              ),
-              Expanded(
-                flex: 1,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Consumer<Settings>(
-                      builder: (context, settings, _) => Column(
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
                         children: [
                           ListTile(
                             contentPadding: const EdgeInsets.all(8.0),
@@ -117,9 +117,9 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
-            ],
-          );
+              ],
+            );
+          });
         });
   }
 }
