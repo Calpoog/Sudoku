@@ -60,7 +60,9 @@ class GameActions extends StatelessWidget {
                   message:
                       'When you check and the board is incorrect, your score will be moved to a separate leaderboard.',
                   acceptText: 'Check',
-                  onSuccess: () => game.check(),
+                  onSuccess: () {
+                    if (game.check() && onComplete != null) onComplete!();
+                  },
                 ).show(context);
               },
             ),
@@ -71,7 +73,10 @@ class GameActions extends StatelessWidget {
               size: buttonSize,
               child: Icon(Icons.undo, color: colors.icon),
               onPressed: () {
-                if (onComplete != null) onComplete!();
+                if (onComplete != null) {
+                  game.solve();
+                  onComplete!();
+                }
               },
             ),
             SizedBox(width: spacing),

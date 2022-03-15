@@ -36,14 +36,14 @@ class MyApp extends StatelessWidget {
             path: 'games',
             name: 'games',
             pageBuilder: (context, state) => transition(
-              const SavedGames(),
+              const PageWrapper(child: SavedGames()),
             ),
           ),
           GoRoute(
             path: 'settings',
             name: 'settings',
             pageBuilder: (context, state) => transition(
-              PageWrapper(child: SettingsPage()),
+              const PageWrapper(child: SettingsPage()),
             ),
           ),
           GoRoute(

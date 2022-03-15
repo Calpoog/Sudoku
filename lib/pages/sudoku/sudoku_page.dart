@@ -28,8 +28,10 @@ class CompleteNotifier extends ChangeNotifier {
 class SudokuEntryAnimation {
   final AnimationController controller;
 
-  SudokuEntryAnimation({required TickerProvider vsync})
-      : controller = AnimationController(vsync: vsync, duration: const Duration(seconds: 2));
+  SudokuEntryAnimation({required TickerProvider vsync, bool isComplete = false})
+      : controller = AnimationController(vsync: vsync, duration: const Duration(seconds: 2)) {
+    if (isComplete) controller.forward(from: 1.0);
+  }
 }
 
 class SudokuPage extends StatefulWidget {
@@ -46,6 +48,10 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
   final _focus = FocusNode();
   late Future<SudokuGame> _future;
   late final _entry = SudokuEntryAnimation(vsync: this);
+  late var animation = CurvedAnimation(
+    parent: _entry.controller,
+    curve: const Interval(0, 0.5, curve: Curves.easeInCubic),
+  );
 
   @override
   void initState() {
@@ -86,10 +92,6 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
         if (!snapshot.hasData) return const SizedBox();
 
         final game = snapshot.data!;
-        final animation = CurvedAnimation(
-          parent: _entry.controller,
-          curve: const Interval(0, 0.5, curve: Curves.easeOut),
-        );
 
         return MultiProvider(
           providers: [
@@ -146,15 +148,20 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                         Center(
                           child: Transform.translate(
                             offset: Offset(0, 50 * (1 - animation.value)),
-                            child: Opacity(opacity: animation.value, child: child),
+                            child: Opacity(
+                              opacity: _entry.controller.status != AnimationStatus.forward ? 1 : animation.value,
+                              child: child,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 30.0),
                         Expanded(
                           child: SudokuControls(
                             onComplete: () {
-                              game.solve();
                               completeNotifier.complete();
+                              game
+                                ..stopTimer()
+                                ..save();
                               Future.delayed(
                                 const Duration(milliseconds: 600),
                                 () => _entry.controller.reverse(),

@@ -9,9 +9,14 @@ import '../models/settings.dart';
 import '../sudoku/grid_widget.dart';
 import 'sudoku/sudoku_page.dart';
 
-class SettingsPage extends StatelessWidget {
-  SettingsPage({Key? key}) : super(key: key);
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key? key}) : super(key: key);
 
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderStateMixin {
   final game = SudokuGame.fromJSON({
     'grid': {
       'cells':
@@ -29,6 +34,7 @@ class SettingsPage extends StatelessWidget {
         providers: [
           ChangeNotifierProvider.value(value: game),
           ChangeNotifierProvider.value(value: settings),
+          Provider(create: (_) => SudokuEntryAnimation(vsync: this, isComplete: true)),
         ],
         builder: (context, child) {
           return Consumer<Settings>(builder: (context, settings, _) {
