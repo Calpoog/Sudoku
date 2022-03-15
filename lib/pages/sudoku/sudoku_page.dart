@@ -25,6 +25,13 @@ class CompleteNotifier extends ChangeNotifier {
   }
 }
 
+class SudokuEntryAnimation {
+  final AnimationController controller;
+
+  SudokuEntryAnimation({required TickerProvider vsync})
+      : controller = AnimationController(vsync: vsync, duration: const Duration(seconds: 2));
+}
+
 class SudokuPage extends StatefulWidget {
   const SudokuPage({Key? key, this.id, this.game}) : super(key: key);
 
@@ -38,17 +45,13 @@ class SudokuPage extends StatefulWidget {
 class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _focus = FocusNode();
   late Future<SudokuGame> _future;
-  late final AnimationController _entryController = AnimationController(
-    duration: const Duration(seconds: 1),
-    vsync: this,
-  );
-  late final Animation<double> _animation = CurvedAnimation(parent: _entryController, curve: Curves.easeOut);
+  late final _entry = SudokuEntryAnimation(vsync: this);
 
   @override
   void initState() {
     super.initState();
     _fetch();
-    _entryController.forward();
+    _entry.controller.forward();
     _future.then((game) {
       game.save();
       game.timer.start();
@@ -83,8 +86,16 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
         if (!snapshot.hasData) return const SizedBox();
 
         final game = snapshot.data!;
-        return ChangeNotifierProvider.value(
-          value: game,
+        final animation = CurvedAnimation(
+          parent: _entry.controller,
+          curve: const Interval(0, 0.5, curve: Curves.easeOut),
+        );
+
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: game),
+            Provider.value(value: _entry),
+          ],
           child: KeyboardListener(
             autofocus: true,
             focusNode: _focus,
@@ -115,7 +126,7 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                 final game = context.read<SudokuGame>();
 
                 return AnimatedBuilder(
-                  animation: _animation,
+                  animation: animation,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: constraints.maxWidth, maxHeight: constraints.maxWidth),
                     child: GridWidget(game.grid),
@@ -134,8 +145,8 @@ class _SudokuPageState extends State<SudokuPage> with SingleTickerProviderStateM
                         ),
                         Center(
                           child: Transform.translate(
-                            offset: Offset(0, 50 * (1 - _animation.value)),
-                            child: Opacity(opacity: _animation.value, child: child),
+                            offset: Offset(0, 50 * (1 - animation.value)),
+                            child: Opacity(opacity: animation.value, child: child),
                           ),
                         ),
                         const SizedBox(height: 30.0),
@@ -206,7 +217,7 @@ class SudokuControls extends StatelessWidget {
       final buttonSize =
           this.buttonSize ?? min(kMaxButtonSize, min(constraints.maxHeight / 4.7, constraints.maxWidth / 6.2));
       final spacing = buttonSize * 0.2;
-      return Column(
+      final child = Column(
         children: [
           Container(
             color: colors.surface,
@@ -221,6 +232,7 @@ class SudokuControls extends StatelessWidget {
                   start: 5,
                   length: 4,
                   extra: Button(
+                    index: 8,
                     size: buttonSize,
                     child: SvgPicture.asset('assets/icons/x.svg', width: buttonSize * 0.4),
                     onPressed: () => context.read<SudokuGame>().clearCell(),
@@ -235,6 +247,20 @@ class SudokuControls extends StatelessWidget {
               onComplete: onComplete,
             ),
         ],
+      );
+
+      final opacity = CurvedAnimation(
+        parent: context.read<SudokuEntryAnimation>().controller,
+        curve: const Interval(0.4, 0.60, curve: Curves.ease),
+      );
+
+      return AnimatedBuilder(
+        animation: opacity,
+        builder: (context, child) => Opacity(
+          opacity: opacity.value,
+          child: child,
+        ),
+        child: child,
       );
     });
   }

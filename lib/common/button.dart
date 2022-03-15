@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../models/game.dart';
 import '../models/settings.dart';
+import '../pages/sudoku/sudoku_page.dart';
 import 'colors.dart';
 import 'text.dart';
 
@@ -14,12 +15,14 @@ class Button extends StatelessWidget {
     Key? key,
     required this.size,
     required this.child,
+    required this.index,
     this.isActive = false,
     required this.onPressed,
     this.onLongPress,
     this.text,
   }) : super(key: key);
 
+  final int index;
   final double size;
   final Widget child;
   final bool isActive;
@@ -30,7 +33,7 @@ class Button extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.read<ThemeColors>();
-    final button = Container(
+    Widget button = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
@@ -57,7 +60,7 @@ class Button extends StatelessWidget {
     );
 
     if (text != null) {
-      return Column(
+      button = Column(
         children: [
           button,
           Container(
@@ -71,12 +74,35 @@ class Button extends StatelessWidget {
         ],
       );
     }
-    return button;
+
+    final start = 0.5 + (index - 1) * 0.02;
+    final animation = CurvedAnimation(
+      parent: context.read<SudokuEntryAnimation>().controller,
+      curve: Interval(start, start + 0.1, curve: Curves.easeOut),
+    );
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(0, size * 0.3 * (1 - animation.value)),
+        child: Transform.scale(
+          scale: 0.8 + 0.2 * animation.value,
+          child: Opacity(
+            opacity: animation.value,
+            child: button,
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class DigitButton extends StatelessWidget {
-  const DigitButton({Key? key, required this.digit, required this.size}) : super(key: key);
+  const DigitButton({
+    Key? key,
+    required this.digit,
+    required this.size,
+  }) : super(key: key);
 
   final int digit;
   final double size;
@@ -84,8 +110,10 @@ class DigitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final game = context.watch<SudokuGame>();
+
     return Button(
       size: size,
+      index: digit - 1,
       isActive: game.activeDigit == digit,
       onPressed: () => game.activate(digit),
       onLongPress: () => game.activate(digit, true),

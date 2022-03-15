@@ -32,6 +32,7 @@ class GameActions extends StatelessWidget {
           children: [
             Button(
               text: 'Restart',
+              index: 9,
               size: buttonSize,
               child: SvgPicture.asset(
                 'assets/icons/board.svg',
@@ -48,6 +49,7 @@ class GameActions extends StatelessWidget {
             SizedBox(width: spacing),
             Button(
               text: 'Check',
+              index: 10,
               size: buttonSize,
               child: SvgPicture.asset(
                 'assets/icons/check.svg',
@@ -65,6 +67,7 @@ class GameActions extends StatelessWidget {
             SizedBox(width: spacing),
             Button(
               text: 'Multi',
+              index: 11,
               size: buttonSize,
               child: Icon(Icons.undo, color: colors.icon),
               onPressed: () {
@@ -74,6 +77,7 @@ class GameActions extends StatelessWidget {
             SizedBox(width: spacing),
             Button(
               text: 'Pencil',
+              index: 12,
               size: buttonSize,
               child: SvgPicture.asset(
                 'assets/icons/pencil.svg',
@@ -85,6 +89,7 @@ class GameActions extends StatelessWidget {
             SizedBox(width: spacing),
             Button(
               text: 'Undo',
+              index: 13,
               size: buttonSize,
               child: SvgPicture.asset(
                 'assets/icons/undo.svg',
