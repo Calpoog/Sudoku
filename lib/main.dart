@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'models/settings.dart';
+import 'models/solver.dart';
 import 'pages/home.dart';
 import 'pages/saved_games.dart';
 import 'pages/settings_page.dart';
@@ -18,6 +19,8 @@ void main() {
   // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
   // SystemChrome.restoreSystemUIOverlays();
   settings.load();
+
+  solve('.....6....59.....82....8....45........3........6..3.54...325..6..................');
 
   runApp(MyApp());
 }
