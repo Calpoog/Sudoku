@@ -6,34 +6,34 @@ final counts = {1: 9, 2: 9, 3: 9, 4: 9, 5: 9, 6: 9, 7: 9, 8: 9, 9: 9};
 final allDigits = int.parse('111111111', radix: 2);
 final digitsBitmask = Map.fromEntries(List.generate(9, (i) => MapEntry(i + 1, 1 << 8 - i)));
 final bitmaskDigits = Map.fromEntries(List.generate(9, (i) => MapEntry(1 << 8 - i, i + 1)));
+final twoCombos = [
+  for (var i = 9; i > 0; i--)
+    for (var j = i - 1; j > 0; j--) Candidates(digitsBitmask[i]! | digitsBitmask[j]!)
+];
 
 typedef CandidateState = Map<Square, Candidates>;
 
 class Candidates {
-  int _c;
+  int value;
 
-  Candidates([int? candidates]) : _c = candidates ?? allDigits;
+  Candidates([int? candidates]) : value = candidates ?? allDigits;
 
   bool has(int i) {
-    return _c & digitsBitmask[i]! > 0;
+    return value & digitsBitmask[i]! > 0;
   }
 
   Iterable<int> each() {
     return [1, 2, 3, 4, 5, 6, 7, 8, 9].where((d) => has(d));
   }
 
-  Candidates remove(int i) {
-    return Candidates(_c & ~digitsBitmask[i]!);
-  }
-
-  bool get isEmpty => _c == 0;
+  bool get isEmpty => value == 0;
 
   bool get isSingle {
-    return _c > 0 && (_c & (_c - 1)) == 0;
+    return value > 0 && (value & (value - 1)) == 0;
   }
 
   int get length {
-    int x = _c;
+    int x = value;
     x -= ((x >> 1) & 0x55555555);
     x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
     x = (((x >> 4) + x) & 0x0f0f0f0f);
@@ -42,9 +42,21 @@ class Candidates {
     return (x & 0x0000003f);
   }
 
-  Candidates union(Candidates other) => Candidates(_c | other._c);
+  Candidates union(Candidates other) => Candidates(value | other.value);
 
-  Candidates unique(Candidates other) => Candidates(_c ^ other._c);
+  Candidates unique(Candidates other) => Candidates(value ^ other.value);
+
+  Candidates remove(int d) {
+    return Candidates(value & ~digitsBitmask[d]!);
+  }
+
+  Candidates removeAll(Candidates other) {
+    return Candidates(value & ~other.value);
+  }
+
+  // 1001101
+  //^1001000
+  // 0000101
 
   @override
   String toString() {
@@ -61,13 +73,20 @@ class Unit {
 
   Unit([List<Square>? squares]) : squares = squares ?? [];
 
-  /// Remove a count of digit
-  remove(int d) {
-    count[d] = count[d]! - 1;
+  /// Returns a list of the positions for a digit in this unit
+  Iterable<int> positions(int d) {
+    return squares.foldIndexed<List<int>>([], (index, positions, s) {
+      if (s.candidates.has(d)) positions.add(index);
+      return positions;
+    });
   }
 
   Iterable<Square> where(bool Function(Square) test) {
     return squares.where(test);
+  }
+
+  Candidates remaining() {
+    return squares.fold(Candidates(0), (previous, s) => s.candidates.union(previous));
   }
 }
 
@@ -146,7 +165,7 @@ class Solution {
   }
 
   Solution copy() {
-    return Solution._internal(squares.map((s) => s.candidates.isSingle ? bitmaskDigits[s.candidates._c]! : 0));
+    return Solution._internal(squares.map((s) => s.candidates.isSingle ? bitmaskDigits[s.candidates.value]! : 0));
   }
 
   factory Solution.fromString(String grid) {
@@ -172,7 +191,7 @@ class Solution {
     // Only one candidate remains, propagate its removal from peers
     if (c.isSingle) {
       for (var peer in s.peers) {
-        eliminate(peer, bitmaskDigits[c._c]!);
+        eliminate(peer, bitmaskDigits[c.value]!);
         if (isFailed) return;
       }
     }
@@ -189,23 +208,20 @@ class Solution {
     }
   }
 
-  CandidateState? candidateLines(CandidateState? candidates) {
-    // Already failed
-    if (candidates == null) return null;
-    // Already solved
-    // if (isSolved(candidates)) return candidates;
+  void candidateLines() {
+    if (isFailed || isSolved) return;
 
     for (var b = 0; b < boxes.length; b++) {
       final box = boxes[b];
-      // A list where the index corresponds to a digit, and the values is 0,1,2,3 depending
+      // A list where the index corresponds to a digit, and the values is 0,2,3,4 depending
       // on whether the digit is ONLY in row/col none, first, second, third of the box
       final dRows = List.filled(9, 0);
       final dCols = List.filled(9, 0);
       for (var i = 0; i < 3; i++) {
         // all the candidates in this row of this box
-        final row = union(box.where((s) => s.row % 3 == i && !candidates[s]!.isSingle));
+        final row = union(box.where((s) => s.row % 3 == i && !s.candidates.isSingle));
         // all the candidates in this col of this box
-        final col = union(box.where((s) => s.col % 3 == i && !candidates[s]!.isSingle));
+        final col = union(box.where((s) => s.col % 3 == i && !s.candidates.isSingle));
         for (var d = 1; d <= 9; d++) {
           if (row.has(d)) dRows[d - 1] += i + 2;
           if (col.has(d)) dCols[d - 1] += i + 2; // 0, 2, 3, 4 : 5, 6, 7
@@ -217,16 +233,16 @@ class Solution {
           final rest = rows[dRows[d - 1] - 2 + (b / 3).floor() * 3].where((s) => !s.units.contains(box));
           if (union(rest).has(d)) {
             affected.addAll(rest);
-            print('candidate row ${dRows[d - 1] - 2} digit $d in box $b');
-            display();
+            print('candidate row ${dRows[d - 1] - 2}, box $b, digit $d');
+            // display();
           }
         }
         if ([2, 3, 4].contains(dCols[d - 1])) {
           final rest = cols[dCols[d - 1] - 2 + b % 3 * 3].where((s) => !s.units.contains(box));
           if (union(rest).has(d)) {
             affected.addAll(rest);
-            print('candidate col ${dCols[d - 1] - 2} digit $d in box $b');
-            display();
+            print('candidate col ${dCols[d - 1] - 2}, box $b, digit $d');
+            // display();
           }
         }
         for (var s in affected) {
@@ -234,8 +250,6 @@ class Solution {
         }
       }
     }
-
-    return candidates;
   }
 
   Candidates union(Iterable<Square> squares) {
@@ -287,6 +301,7 @@ Solution? search(Solution solution, [int n = 0]) {
   for (var d in s.candidates.each()) {
     var newSolution = solution.copy();
     newSolution.assign(newSolution.squares[s.index], d);
+    newSolution.candidateLines();
     var result = search(newSolution, n + 1);
     if (result != null) return result;
   }
