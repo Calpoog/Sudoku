@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 
-final counts = {1: 9, 2: 9, 3: 9, 4: 9, 5: 9, 6: 9, 7: 9, 8: 9, 9: 9};
+final digitMap = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0};
 final allDigits = int.parse('111111111', radix: 2);
 final digitsBitmask = Map.fromEntries(List.generate(9, (i) => MapEntry(i + 1, 1 << 8 - i)));
 final bitmaskDigits = Map.fromEntries(List.generate(9, (i) => MapEntry(1 << 8 - i, i + 1)));
@@ -114,14 +114,7 @@ class Unit {
   /// The squares in the unit.
   final List<Square> squares = [];
 
-  /// A mapping of digit to its count in the unit
-  final Map<int, int> count = Map.from(counts);
-
   Unit(this.index);
-
-  Iterable<Square> where(bool Function(Square) test) {
-    return squares.where(test);
-  }
 }
 
 class Row extends Unit {
@@ -257,7 +250,7 @@ class Solution {
 
     // Check if the square's units now only have 1 place d can be put
     for (final unit in s.units) {
-      final dPlaces = unit.where((s) => candidates[s]!.has(d));
+      final dPlaces = unit.squares.where((s) => candidates[s]!.has(d));
       if (dPlaces.isEmpty) {
         isFailed = true;
       } else if (dPlaces.length == 1) {
@@ -352,7 +345,7 @@ class Solution {
           for (var d = 1; d <= 9; d++) {
             if (boxLine.has(d)) {
               dLines[d - 1] += i + 2;
-              var restOfBox = box.where((s) => !squares.match.contains(s));
+              var restOfBox = box.squares.where((s) => !squares.match.contains(s));
               if (!union(candidates, squares.rest).has(d) && union(candidates, restOfBox).has(d)) {
                 print('Box/Line reduction $d in ${isRow ? 'row' : 'col'} ${i + 1} of $box');
                 display(candidates);
@@ -374,27 +367,65 @@ class Solution {
 
           // If d is only in one row/col of the box it's a pointing pair
           if ([2, 3, 4].contains(dLines[d - 1])) {
-            var rest = lines[index + offset].where((s) => !s.units.contains(box));
+            var rest = lines[index + offset].squares.where((s) => !s.units.contains(box));
             if (union(candidates, rest).has(d)) {
               affected.addAll(rest);
               print('Pointing pair $d in ${isRow ? 'row' : 'col'} ${index + 1} of $box');
               display(candidates);
             }
           }
-          // If d isn't just in this row/col of the box but it *is* the only ds
-          // in the whole row/col, it's a box/line reduction
-          // else if(!dIsInRest) {
-          //     rest = box.where((s) => s.row != index + box.rowOffset);
-          //     if (union(candidates, rest).has(d)) {
-          //       affected.addAll(rest);
-          //       print('Box/Line reduction $d in ${isRow ? 'row': 'col'} ${index + 1} of $box');
-          //       display(candidates);
-          //     }
-          //   }
         }
 
         for (var s in affected) {
           if (eliminate(candidates, s, d) == null) return null;
+        }
+      }
+    }
+
+    return candidates;
+  }
+
+  CandidateState? xWings(CandidateState? candidates, List<Unit> primary, List<Unit> secondary) {
+    if (candidates == null) return null;
+    if (isSolved(candidates)) return candidates;
+
+    for (var d = 1; d <= 9; d++) {
+      for (var i = 0; i < primary.length; i++) {
+        final line = primary[i];
+        final spots = [];
+        for (var x = 0; x < line.squares.length; x++) {
+          final s = line.squares[x];
+          if (!candidates[s]!.isSingle && candidates[s]!.has(d)) spots.add(x);
+          if (spots.length > 2) break;
+        }
+        // If there was a pair, look through the rest of the lines for the same pair
+        if (spots.length == 2) {
+          for (var j = i + 1; j < primary.length; j++) {
+            final otherLine = primary[j];
+            var matches = true;
+            for (var x = 0; x < otherLine.squares.length; x++) {
+              final s = otherLine.squares[x];
+              final isPairSpot = spots.contains(x);
+              final spotHasDigit = candidates[s]!.has(d);
+              // If a pair spot doesn't have the digit, or a non-pair spot does, this line isn't a match
+              if (isPairSpot ^ spotHasDigit) {
+                matches = false;
+                break;
+              }
+            }
+            if (matches) {
+              var spot1SecondaryLine = secondary[spots[0]].squares.whereIndexed((x, s) => x != i && x != j);
+              var spot2SecondaryLine = secondary[spots[1]].squares.whereIndexed((x, s) => x != i && x != j);
+              if (union(candidates, spot1SecondaryLine).has(d) && union(candidates, spot2SecondaryLine).has(d)) {
+                print(
+                    'XWing for $d in ${line.runtimeType}s ${i + 1} and ${j + 1}, squares ${spots[0] + 1}, ${spots[1] + 1}');
+                display(candidates);
+                for (var s in [...spot1SecondaryLine, ...spot2SecondaryLine]) {
+                  if (eliminate(candidates, s, d) == null) return null;
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -439,7 +470,7 @@ class Solution {
   }
 
   CandidateState? applyLogic(CandidateState? candidates) {
-    return hiddenSubset(nakedSubset(pointingPairs(candidates)));
+    return xWings(xWings(hiddenSubset(nakedSubset(pointingPairs(candidates))), rows, cols), cols, rows);
   }
 
   CandidateState? search(CandidateState? candidates, [int n = 0]) {
