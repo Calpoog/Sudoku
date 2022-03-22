@@ -20,8 +20,37 @@ void main() {
   // SystemChrome.restoreSystemUIOverlays();
   settings.load();
 
+  // Hard I guess
   // Solution.fromString('.....6....59.....82....8....45........3........6..3.54...325..6..................');
-  Solution.fromString('2....7...7........1..................2974.5185....9...9........8.........7395.281');
+
+  // XWing
+  // Solution.fromString('2....7...7........1..................2974.5185....9...9........8.........7395.281');
+
+  // Coloring with 2 of same color in unit
+  // Solution.fromString('123...587..5817239987...164.51..847339.75.6187.81..925.76...89153..8174681..7.352');
+
+  // Coloring with opposite colors in unit
+  // Solution.fromString('..85.21.335...12.8.21.3..5.56324.7.14821.753.179.53..2.3..2581.8.731..25215.843..');
+
+  // Coloring with uncolored square seeing two colors
+  // Solution.fromString('..463.5..6.54.1..337..5964.938.6.154457198362216345987.435.6.19.6.9.34.55.9.14.36');
+
+  // YWings https://www.sudokuwiki.org/Y_Wing_Strategy
+  Solution.fromString('9..24.....5.69.231.2..5..9..9.7..32...29356.7.7...29...69.2..7351..79.622.7.86..9');
+
+  // From "Sudoku: The Clean One"
+  // "Medium"
+  // Solution.fromString('.465..3..1..43.7.57....8...5.....8...87..6.5.96..8.14.85412.....2.86........5.218');
+  // "Hard"
+  // Solution.fromString('9..75..68.2...95.16.7.3.24.....6.45...5.2...3.....56.......312..1428..9.....7..3.');
+  // "Extreme"
+  // Solution.fromString('..5.....8...18...7.....412...9.....2.4.3..5..5.6..7.8.6...9...1.2...5....9.6..7..');
+
+  // From sudokuoftheday.com
+  // Fiendish
+  // Solution.fromString('...14..53........9..5.9..2.8....2....3.4.7.9....9....2.4..6.7..3........56..14...');
+  // Diabolical
+  // Solution.fromString('3.......97.24...5...5.6....4...72.8....5.4....7.61...2....4.3...5...71.828......4');
 
   runApp(MyApp());
 }
