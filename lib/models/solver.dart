@@ -407,6 +407,7 @@ class Solution {
       for (var i = 0; i < primary.length; i++) {
         final line = primary[i];
         final spots = [];
+        // Identify lines with two places for d
         for (var x = 0; x < line.squares.length; x++) {
           final s = line.squares[x];
           if (!candidates[s]!.isSingle && candidates[s]!.has(d)) spots.add(x);
@@ -430,7 +431,7 @@ class Solution {
             if (matches) {
               var spot1SecondaryLine = secondary[spots[0]].squares.whereIndexed((x, s) => x != i && x != j);
               var spot2SecondaryLine = secondary[spots[1]].squares.whereIndexed((x, s) => x != i && x != j);
-              if (union(spot1SecondaryLine).has(d) && union(spot2SecondaryLine).has(d)) {
+              if (union(spot1SecondaryLine).has(d) || union(spot2SecondaryLine).has(d)) {
                 for (var s in [...spot1SecondaryLine, ...spot2SecondaryLine]) {
                   if (!eliminate(s, d)) return null;
                 }
