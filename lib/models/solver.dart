@@ -290,10 +290,7 @@ class Solution {
     return candidates;
   }
 
-  CandidateState? nakedSubset(CandidateState? candidates) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
-
+  CandidateState? nakedSubset(CandidateState candidates) {
     for (var unit in units) {
       for (var combo in combos) {
         var matches = <Square>[];
@@ -304,14 +301,13 @@ class Solution {
         if (matches.length == combo.length) {
           var affected = unit.squares.where((s) => !matches.contains(s));
           if (union(candidates, affected).hasAny(combo)) {
-            print('Naked subset $combo found in $unit');
-            display(candidates);
-            applied = true;
+            apply('Naked subset $combo found in $unit');
             for (var s in affected) {
               for (var d in combo.each()) {
                 if (eliminate(candidates, s, d) == null) return null;
               }
             }
+            return candidates;
           }
         }
       }
@@ -320,10 +316,7 @@ class Solution {
     return candidates;
   }
 
-  CandidateState? hiddenSubset(CandidateState? candidates) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
-
+  CandidateState? hiddenSubset(CandidateState candidates) {
     for (var unit in units) {
       for (var combo in combos) {
         var matches = <Square>[];
@@ -341,9 +334,7 @@ class Solution {
         }
 
         if (matches.length == combo.length && foundCandidates.hasAll(combo) && !foundCandidates.equals(combo)) {
-          print('Hidden subset $combo found in $unit');
-          display(candidates);
-          applied = true;
+          apply('Hidden subset $combo found in $unit');
           for (var s in matches) {
             for (var d = 1; d <= 9; d++) {
               if (!combo.has(d)) {
@@ -351,6 +342,7 @@ class Solution {
               }
             }
           }
+          return candidates;
         }
       }
     }
@@ -358,10 +350,7 @@ class Solution {
     return candidates;
   }
 
-  CandidateState? pointingPairs(CandidateState? candidates) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
-
+  CandidateState? pointingPairs(CandidateState candidates) {
     for (var b = 0; b < boxes.length; b++) {
       final box = boxes[b];
       // A list where the index corresponds to a digit, and the values tell which row/col it's in
@@ -378,19 +367,18 @@ class Solution {
               dLines[d - 1] += i + 2;
               var restOfBox = box.squares.where((s) => !squares.match.contains(s));
               if (!union(candidates, squares.rest).has(d) && union(candidates, restOfBox).has(d)) {
-                print('Box/Line reduction $d in ${isRow ? 'row' : 'col'} ${i + 1} of $box');
-                display(candidates);
-                applied = true;
+                apply(
+                    'Box/Line reduction $d between $box and ${isRow ? 'Row' : 'Col'} ${i + 1 + (isRow ? box.rowOffset : box.colOffset)}');
                 for (var s in restOfBox) {
                   if (eliminate(candidates, s, d) == null) return null;
                 }
+                return candidates;
               }
             }
           }
         }
       }
       for (var d = 1; d <= 9; d++) {
-        List<Square> affected = [];
         for (var isRow in [true, false]) {
           final lines = isRow ? rows : cols;
           final dLines = isRow ? dRows : dCols;
@@ -401,16 +389,14 @@ class Solution {
           if ([2, 3, 4].contains(dLines[d - 1])) {
             var rest = lines[index + offset].squares.where((s) => !s.units.contains(box));
             if (union(candidates, rest).has(d)) {
-              affected.addAll(rest);
-              print('Pointing pair $d in ${isRow ? 'row' : 'col'} ${index + 1} of $box');
-              display(candidates);
-              applied = true;
+              apply(
+                  'Pointing pair $d between $box and ${isRow ? 'Row' : 'Col'} ${index + 1 + (isRow ? box.rowOffset : box.colOffset)}');
+              for (var s in rest) {
+                if (eliminate(candidates, s, d) == null) return null;
+              }
+              return candidates;
             }
           }
-        }
-
-        for (var s in affected) {
-          if (eliminate(candidates, s, d) == null) return null;
         }
       }
     }
@@ -418,10 +404,7 @@ class Solution {
     return candidates;
   }
 
-  CandidateState? xWings(CandidateState? candidates, List<Unit> primary, List<Unit> secondary) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
-
+  CandidateState? xWings(CandidateState candidates, List<Unit> primary, List<Unit> secondary) {
     for (var d = 1; d <= 9; d++) {
       for (var i = 0; i < primary.length; i++) {
         final line = primary[i];
@@ -450,12 +433,44 @@ class Solution {
               var spot1SecondaryLine = secondary[spots[0]].squares.whereIndexed((x, s) => x != i && x != j);
               var spot2SecondaryLine = secondary[spots[1]].squares.whereIndexed((x, s) => x != i && x != j);
               if (union(candidates, spot1SecondaryLine).has(d) && union(candidates, spot2SecondaryLine).has(d)) {
-                print(
+                apply(
                     'XWing for $d in ${line.runtimeType}s ${i + 1} and ${j + 1}, squares ${spots[0] + 1}, ${spots[1] + 1}');
-                display(candidates);
-                applied = true;
                 for (var s in [...spot1SecondaryLine, ...spot2SecondaryLine]) {
                   if (eliminate(candidates, s, d) == null) return null;
+                }
+                return candidates;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return candidates;
+  }
+
+  CandidateState? yWings(CandidateState candidates) {
+    final twos = squares.where((s) => candidates[s]!.length == 2);
+
+    for (var i = 0; i < twos.length; i++) {
+      final pivot = twos.elementAt(i);
+      for (var j = i + 1; j < twos.length; j++) {
+        final pincer1 = twos.elementAt(j);
+        if (_isPincer(candidates, pivot, pincer1)) {
+          for (var k = j + 1; k < twos.length; k++) {
+            final pincer2 = twos.elementAt(k);
+            if (_isPincer(candidates, pivot, pincer2)) {
+              // If it's also a pincer of the pivot, we know p1 and p2 share 1 value with pivot.
+              // So they must share a value, and that value must not be in pivot.
+              final shared = candidates[pincer1]!.intersection(candidates[pincer2]!);
+              if (shared.isSingle && !candidates[pivot]!.hasAll(shared)) {
+                final sees = pincer1.peers.where((s) => pincer2.peers.contains(s) && candidates[s]!.has(shared.digit));
+                if (sees.isNotEmpty) {
+                  apply('YWing for $shared in $pivot, $pincer1, $pincer2');
+                  for (var s in sees) {
+                    if (eliminate(candidates, s, shared.digit) == null) return null;
+                  }
+                  return candidates;
                 }
               }
             }
@@ -467,10 +482,14 @@ class Solution {
     return candidates;
   }
 
-  CandidateState? singlesChain(CandidateState? candidates) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
+  bool _isPincer(CandidateState candidates, Square pivot, Square pincer) {
+    return pincer != pivot &&
+        !candidates[pivot]!.equals(candidates[pincer]!) &&
+        candidates[pivot]!.hasAny(candidates[pincer]!) &&
+        pivot.peers.contains(pincer);
+  }
 
+  CandidateState? singlesChain(CandidateState candidates) {
     for (var d = 1; d <= 9; d++) {
       final colors = <ColoredCandidate>{};
 
@@ -503,19 +522,17 @@ class Solution {
             final isGreen = c.color == CandidateColor.green;
             if (isGreen) {
               if (unitGreens[unit] == true) {
-                print('Green $d appears twice in $unit with chain $group');
-                display(candidates);
-                applied = true;
+                apply('Green $d appears twice in $unit with chain $group');
                 if (_removeColor(candidates, d, group, CandidateColor.green) == null) return null;
+                return candidates;
               }
               if (unitReds[unit] == true && _removeUncolored(candidates, d, group, unit) == null) return null;
               unitGreens[unit] = true;
             } else {
               if (unitReds[unit] == true) {
-                print('Red $d appears twice in $unit with chain $group');
-                display(candidates);
-                applied = true;
+                apply('Red $d appears twice in $unit with chain $group');
                 if (_removeColor(candidates, d, group, CandidateColor.red) == null) return null;
+                return candidates;
               }
               if (unitGreens[unit] == true && _removeUncolored(candidates, d, group, unit) == null) return null;
               unitReds[unit] = true;
@@ -529,11 +546,9 @@ class Solution {
                 }
                 // Sees both
                 else if ((uncoloredSees[s] == false && isGreen) || (uncoloredSees[s] == true && !isGreen)) {
-                  print('Uncolored $d in $s sees red and green in chain $group');
-                  display(candidates);
-                  applied = true;
-                  uncoloredSees[s] = null;
+                  apply('Uncolored $d in $s sees red and green in chain $group');
                   if (eliminate(candidates, s, d) == null) return null;
+                  return candidates;
                 }
               }
             }
@@ -543,49 +558,6 @@ class Solution {
     }
 
     return candidates;
-  }
-
-  CandidateState? yWings(CandidateState? candidates) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
-
-    final twos = squares.where((s) => candidates[s]!.length == 2);
-
-    for (var i = 0; i < twos.length; i++) {
-      final pivot = twos.elementAt(i);
-      for (var j = i + 1; j < twos.length; j++) {
-        final pincer1 = twos.elementAt(j);
-        if (_isPincer(candidates, pivot, pincer1)) {
-          for (var k = j + 1; k < twos.length; k++) {
-            final pincer2 = twos.elementAt(k);
-            if (_isPincer(candidates, pivot, pincer2)) {
-              // If it's also a pincer of the pivot, we know p1 and p2 share 1 value with pivot.
-              // So they must share a value, and that value must not be in pivot.
-              final shared = candidates[pincer1]!.intersection(candidates[pincer2]!);
-              if (shared.isSingle && !candidates[pivot]!.hasAll(shared)) {
-                final sees = pincer1.peers.where((s) => pincer2.peers.contains(s) && candidates[s]!.has(shared.digit));
-                if (sees.isNotEmpty) {
-                  print('YWing for $shared in $pivot, $pincer1, $pincer2');
-                  display(candidates);
-                  for (var s in sees) {
-                    if (eliminate(candidates, s, shared.digit) == null) return null;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return candidates;
-  }
-
-  bool _isPincer(CandidateState candidates, Square pivot, Square pincer) {
-    return pincer != pivot &&
-        !candidates[pivot]!.equals(candidates[pincer]!) &&
-        candidates[pivot]!.hasAny(candidates[pincer]!) &&
-        pivot.peers.contains(pincer);
   }
 
   bool _isUncolored(CandidateState candidates, int d, Iterable<ColoredCandidate> chain, Square s) {
@@ -608,11 +580,10 @@ class Solution {
   CandidateState? _removeUncolored(CandidateState candidates, int d, Iterable<ColoredCandidate> chain, Unit unit) {
     var uncolored = _getUncolored(candidates, d, chain, unit.squares);
     if (uncolored.isNotEmpty) {
-      print('Opposite colors for $d in $unit, with chain $chain');
-      display(candidates);
-    }
-    for (var s in uncolored) {
-      if (eliminate(candidates, s, d) == null) return null;
+      apply('Opposite colors for $d in $unit, with chain $chain');
+      for (var s in uncolored) {
+        if (eliminate(candidates, s, d) == null) return null;
+      }
     }
     return candidates;
   }
@@ -680,21 +651,27 @@ class Solution {
     print(stopwatch.elapsed);
   }
 
-  CandidateState? applyLogic(CandidateState? candidates) {
+  void apply(String message) {
+    print(message);
+    display(candidates);
+    applied = true;
+  }
+
+  CandidateState? applyLogic(CandidateState candidates) {
     final List<Function> logicOrder = [
-      nakedSubset,
       hiddenSubset,
+      pointingPairs,
       (CandidateState candidates) => xWings(candidates, rows, cols),
       (CandidateState candidates) => xWings(candidates, cols, rows),
       yWings,
       singlesChain,
     ];
-    var result = candidates;
+    CandidateState? result = candidates;
     var round = 0;
     while (result != null && !isSolved(result)) {
       round++;
       print('Round $round of logic');
-      result = pointingPairs(result);
+      result = nakedSubset(result);
 
       for (var f in logicOrder) {
         applied = false;
@@ -713,24 +690,24 @@ class Solution {
     return result;
   }
 
-  CandidateState? search(CandidateState? candidates, [int n = 0]) {
-    if (candidates == null) return null;
-    if (isSolved(candidates)) return candidates;
-    print('Search $n');
+  // CandidateState? search(CandidateState? candidates, [int n = 0]) {
+  //   if (candidates == null) return null;
+  //   if (isSolved(candidates)) return candidates;
+  //   print('Search $n');
 
-    // Pick the cell with the least remaining candidates and try out each
-    final x = squares.where((s) => candidates[s]!.length > 1);
+  //   // Pick the cell with the least remaining candidates and try out each
+  //   final x = squares.where((s) => candidates[s]!.length > 1);
 
-    final s = x.sorted((a, b) => candidates[a]!.length - candidates[b]!.length).first;
+  //   final s = x.sorted((a, b) => candidates[a]!.length - candidates[b]!.length).first;
 
-    for (var d in candidates[s]!.each()) {
-      print('Trying $d for $s');
-      var result = search(applyLogic(assign(copy(candidates), s, d)), n + 1);
-      print('Up to $n');
-      if (result != null) return result;
-    }
-    return null;
-  }
+  //   for (var d in candidates[s]!.each()) {
+  //     print('Trying $d for $s');
+  //     var result = search(applyLogic(assign(copy(candidates), s, d)), n + 1);
+  //     print('Up to $n');
+  //     if (result != null) return result;
+  //   }
+  //   return null;
+  // }
 
   CandidateState copy(CandidateState candidates) {
     return candidates.map((s, c) => MapEntry(s, Candidates(c.value)));
