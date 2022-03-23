@@ -19,6 +19,18 @@ final triplets = [
 ];
 final combos = [...pairs, ...triplets];
 
+List<List<T>> combinations<T>(List<T> list, int size, [List<T>? previous]) {
+  previous ??= [];
+  if (previous.length == size) return List.of([previous]);
+  final List<List<T>> combos = [];
+  for (var i = 0; i < list.length; i++) {
+    final copy = List<T>.from(previous);
+    copy.add(list[i]);
+    combos.addAll(combinations(list.sublist(i + 1), size, copy));
+  }
+  return combos;
+}
+
 typedef CandidateState = Map<Square, Candidates>;
 
 enum CandidateColor { uncolored, green, red }
@@ -142,6 +154,8 @@ class Unit {
   final List<Square> squares = [];
 
   Unit(this.index);
+
+  String simple() => '';
 }
 
 class Row extends Unit {
@@ -151,6 +165,9 @@ class Row extends Unit {
   String toString() {
     return 'Row ${index + 1}';
   }
+
+  @override
+  String simple() => String.fromCharCode(index + 65);
 }
 
 class Column extends Unit {
@@ -160,6 +177,9 @@ class Column extends Unit {
   String toString() {
     return 'Col ${index + 1}';
   }
+
+  @override
+  String simple() => (index + 1).toString();
 }
 
 class Box extends Unit {
@@ -260,6 +280,7 @@ class Solution {
     var c = candidates[s]!;
     // Already removed
     if (!c.has(d)) return true;
+    // print('Eliminate $d from $s');
     c = candidates[s] = c.remove(d);
     // All candidates removed, a contradiction
     if (c.isEmpty) {
@@ -271,6 +292,7 @@ class Solution {
     // Only one candidate remains, propagate its removal from peers
     // Naked singles
     if (c.isSingle) {
+      // print('Single candidate $d in $s');
       for (var peer in s.peers) {
         if (!eliminate(peer, c.digit)) return false;
       }
@@ -285,6 +307,7 @@ class Solution {
         display();
         return false;
       } else if (dPlaces.length == 1) {
+        // print('Hidden single $d in $unit');
         if (!assign(dPlaces.first, d)) return false;
       }
     }
@@ -403,48 +426,9 @@ class Solution {
   }
 
   Technique? xWings(List<Unit> primary, List<Unit> secondary) {
-    for (var d = 1; d <= 9; d++) {
-      for (var i = 0; i < primary.length; i++) {
-        final line = primary[i];
-        final spots = [];
-        // Identify lines with two places for d
-        for (var x = 0; x < line.squares.length; x++) {
-          final s = line.squares[x];
-          if (!candidates[s]!.isSingle && candidates[s]!.has(d)) spots.add(x);
-          if (spots.length > 2) break;
-        }
-        // If there was a pair, look through the rest of the lines for the same pair
-        if (spots.length == 2) {
-          for (var j = i + 1; j < primary.length; j++) {
-            final otherLine = primary[j];
-            var matches = true;
-            for (var x = 0; x < otherLine.squares.length; x++) {
-              final s = otherLine.squares[x];
-              final isPairSpot = spots.contains(x);
-              final spotHasDigit = candidates[s]!.has(d);
-              // If a pair spot doesn't have the digit, or a non-pair spot does, this line isn't a match
-              if (isPairSpot ^ spotHasDigit) {
-                matches = false;
-                break;
-              }
-            }
-            if (matches) {
-              var spot1SecondaryLine = secondary[spots[0]].squares.whereIndexed((x, s) => x != i && x != j);
-              var spot2SecondaryLine = secondary[spots[1]].squares.whereIndexed((x, s) => x != i && x != j);
-              if (union(spot1SecondaryLine).has(d) || union(spot2SecondaryLine).has(d)) {
-                for (var s in [...spot1SecondaryLine, ...spot2SecondaryLine]) {
-                  if (!eliminate(s, d)) return null;
-                }
-                return XWing(
-                    'XWing for $d in ${line.runtimeType}s ${i + 1} and ${j + 1}, squares ${spots[0] + 1}, ${spots[1] + 1}');
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return None();
+    final result = xFish(primary, secondary, 2);
+    if (result == null) return null;
+    return result == '' ? None() : XWing('Xwing $result');
   }
 
   Technique? yWings() {
@@ -613,6 +597,77 @@ class Solution {
     return length;
   }
 
+  Technique? swordfish(List<Unit> primary, List<Unit> secondary) {
+    final result = xFish(primary, secondary, 3);
+    if (result == null) return null;
+    return result == '' ? None() : Swordfish('Swordfish $result');
+  }
+
+  Technique? jellyfish(List<Unit> primary, List<Unit> secondary) {
+    final result = xFish(primary, secondary, 4);
+    if (result == null) return null;
+    return result == '' ? None() : Jellyfish('Jellyfish $result');
+  }
+
+  String? xFish(List<Unit> primary, List<Unit> secondary, [int size = 2]) {
+    final isRow = primary.first is Row;
+    for (var d = 1; d <= 9; d++) {
+      final maskedPrimary = primary.map((line) => _maskLine(line, d)).toList();
+
+      // Find lines that could be part of an XWing, Swordfish, Jellyfish
+      final lines = <Unit>[];
+      for (var i = 0; i < primary.length; i++) {
+        final line = maskedPrimary[i];
+        if (line.length <= size && line.length >= 2) {
+          lines.add(primary[i]);
+        }
+      }
+
+      for (var combo in combinations(lines, size)) {
+        final counts = <int, int>{};
+
+        // There should be a minimum of 2 in the cross-axis direction
+        for (var line in combo) {
+          for (var j = 0; j < primary.length; j++) {
+            if (candidates[line.squares[j]]!.has(d)) {
+              if (!counts.containsKey(j)) counts[j] = 0;
+              counts[j] = counts[j]! + 1;
+            }
+          }
+        }
+
+        // There should be exactly size non-zero counts, and they must all be >= 2
+        var affected = <Square>[];
+        if (counts.length != size) continue;
+
+        counts.removeWhere((key, value) => value < 2);
+        for (var c in counts.keys) {
+          affected.addAll(secondary[c]
+              .squares
+              .where((s) => candidates[s]!.has(d) && !combo.contains(primary[isRow ? s.row : s.col])));
+        }
+        if (affected.isNotEmpty) {
+          display();
+          for (var s in affected) {
+            if (!eliminate(s, d)) return null;
+          }
+          final p = combo.map((c) => c.simple()).join('');
+          final s = counts.keys.sorted((a, b) => a - b).map((k) => secondary[k].simple()).join('');
+          final location = isRow ? [p, s] : [s, p];
+          return '${combo.map((l) => maskedPrimary[l.index].length).join('-')} for $d in ${location.join('')}';
+        }
+      }
+    }
+
+    return '';
+  }
+
+  /// Creates a Candidates bitmask that instead represents the locations of d in the line
+  Candidates _maskLine(Unit line, int d) {
+    return line.squares.foldIndexed<Candidates>(Candidates(0),
+        (i, previous, s) => candidates[s]!.has(d) ? Candidates(previous.value | (1 << 8 - i)) : previous);
+  }
+
   Candidates union(Iterable<Square> squares) {
     return squares.fold<Candidates>(Candidates(0), (previous, s) => candidates[s]!.union(previous));
   }
@@ -656,8 +711,12 @@ class Solution {
       pointingPairs,
       () => xWings(rows, cols),
       () => xWings(cols, rows),
-      yWings,
       singlesChain,
+      yWings,
+      () => swordfish(rows, cols),
+      () => swordfish(cols, rows),
+      () => jellyfish(rows, cols),
+      () => jellyfish(cols, rows),
     ];
     Technique? result = None();
     var round = 0;
@@ -678,7 +737,7 @@ class Solution {
         }
       }
 
-      if (result == null) {
+      if (result is None) {
         print('all logic failed');
         return false;
       }

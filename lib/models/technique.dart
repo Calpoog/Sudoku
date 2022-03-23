@@ -36,3 +36,11 @@ class YWing extends Technique {
 class SinglesChain extends Technique {
   SinglesChain(String message) : super(message, 100);
 }
+
+class Swordfish extends Technique {
+  Swordfish(String message) : super(message, 100);
+}
+
+class Jellyfish extends Technique {
+  Jellyfish(String message) : super(message, 100);
+}

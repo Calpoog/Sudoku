@@ -36,7 +36,13 @@ void main() {
   // Solution.fromString('..463.5..6.54.1..337..5964.938.6.154457198362216345987.435.6.19.6.9.34.55.9.14.36');
 
   // YWings https://www.sudokuwiki.org/Y_Wing_Strategy
-  Solution.fromString('9..24.....5.69.231.2..5..9..9.7..32...29356.7.7...29...69.2..7351..79.622.7.86..9');
+  // Solution.fromString('9..24.....5.69.231.2..5..9..9.7..32...29356.7.7...29...69.2..7351..79.622.7.86..9');
+
+  // Perfect Swordfish https://www.sudokuwiki.org/Sword_Fish_Strategy
+  Solution.fromString('52941.7.3..6..3..2..32......523...76637.5.2..19.62753.3...6942.2..83.6..96.7423.5');
+
+  // Jellyfish https://www.sudokuwiki.org/Jelly_Fish_Strategy
+  // Solution.fromString('..17538...5......77..89.1.....6.157.625478931.179.54......67..4.7.....1...63.97..');
 
   // From "Sudoku: The Clean One"
   // "Medium"
