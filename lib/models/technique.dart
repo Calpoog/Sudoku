@@ -33,6 +33,10 @@ class YWing extends Technique {
   YWing(String message) : super(message, 100);
 }
 
+class XYZWing extends Technique {
+  XYZWing(String message) : super(message, 100);
+}
+
 class SinglesChain extends Technique {
   SinglesChain(String message) : super(message, 100);
 }

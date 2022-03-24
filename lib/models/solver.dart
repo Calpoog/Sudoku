@@ -431,27 +431,31 @@ class Solution {
     return result == '' ? None() : XWing('Xwing $result');
   }
 
-  Technique? yWings() {
-    final twos = squares.where((s) => candidates[s]!.length == 2);
+  Technique? yWings([bool useZ = false]) {
+    final hinges = squares.where((s) => candidates[s]!.length == (useZ ? 3 : 2));
+    final pincers = useZ ? squares.where((s) => candidates[s]!.length == 2) : hinges;
 
-    for (var i = 0; i < twos.length; i++) {
-      final pivot = twos.elementAt(i);
-      for (var j = i + 1; j < twos.length; j++) {
-        final pincer1 = twos.elementAt(j);
-        if (_isPincer(pivot, pincer1)) {
-          for (var k = j + 1; k < twos.length; k++) {
-            final pincer2 = twos.elementAt(k);
-            if (_isPincer(pivot, pincer2)) {
-              // If it's also a pincer of the pivot, we know p1 and p2 share 1 value with pivot.
+    for (var i = 0; i < hinges.length; i++) {
+      final hinge = hinges.elementAt(i);
+      for (var j = useZ ? 0 : i + 1; j < pincers.length; j++) {
+        final pincer1 = pincers.elementAt(j);
+        if (_isPincer(hinge, pincer1, useZ)) {
+          for (var k = j + 1; k < pincers.length; k++) {
+            final pincer2 = pincers.elementAt(k);
+            if (_isPincer(hinge, pincer2, useZ)) {
+              // If it's also a pincer of the hinge, we know p1 and p2 share 1 value with pivot.
               // So they must share a value, and that value must not be in pivot.
               final shared = candidates[pincer1]!.intersection(candidates[pincer2]!);
-              if (shared.isSingle && !candidates[pivot]!.hasAll(shared)) {
-                final sees = pincer1.peers.where((s) => pincer2.peers.contains(s) && candidates[s]!.has(shared.digit));
+              if (shared.isSingle && (useZ || !candidates[hinge]!.hasAll(shared))) {
+                var sees = pincer1.peers.where((s) => pincer2.peers.contains(s) && candidates[s]!.has(shared.digit));
+                if (useZ) sees = sees.where((s) => hinge.peers.contains(s));
                 if (sees.isNotEmpty) {
+                  display();
                   for (var s in sees) {
                     if (!eliminate(s, shared.digit)) return null;
                   }
-                  return YWing('YWing for $shared in $pivot, $pincer1, $pincer2');
+                  final message = 'for $shared in $hinge, $pincer1, $pincer2';
+                  return useZ ? XYZWing('XYZWing $message') : YWing('YWing $message');
                 }
               }
             }
@@ -463,11 +467,11 @@ class Solution {
     return None();
   }
 
-  bool _isPincer(Square pivot, Square pincer) {
-    return pincer != pivot &&
-        !candidates[pivot]!.equals(candidates[pincer]!) &&
-        candidates[pivot]!.hasAny(candidates[pincer]!) &&
-        pivot.peers.contains(pincer);
+  bool _isPincer(Square hinge, Square pincer, bool useZ) {
+    return pincer != hinge &&
+        !candidates[hinge]!.equals(candidates[pincer]!) &&
+        (useZ ? candidates[hinge]!.hasAll(candidates[pincer]!) : candidates[hinge]!.hasAny(candidates[pincer]!)) &&
+        hinge.peers.contains(pincer);
   }
 
   Technique? singlesChain() {
@@ -715,6 +719,7 @@ class Solution {
       yWings,
       () => swordfish(rows, cols),
       () => swordfish(cols, rows),
+      () => yWings(true),
       () => jellyfish(rows, cols),
       () => jellyfish(cols, rows),
     ];
@@ -723,6 +728,7 @@ class Solution {
     while (result != null && !isSolved()) {
       round++;
       print('Round $round of logic');
+      display();
 
       for (var i = 0; i < logicOrder.length; i++) {
         result = logicOrder[i]();
