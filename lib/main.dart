@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'models/settings.dart';
-import 'models/solver.dart';
+import 'solver/solver.dart';
 import 'pages/home.dart';
 import 'pages/saved_games.dart';
 import 'pages/settings_page.dart';
@@ -39,13 +39,22 @@ void main() {
   // Solution.fromString('9..24.....5.69.231.2..5..9..9.7..32...29356.7.7...29...69.2..7351..79.622.7.86..9');
 
   // XYZWings https://www.sudokuwiki.org/XYZ_Wing
-  Solution.fromString('.92..175.5..2....8....3.2...75..496.2...6..75.697...3...8.9..2.7....3.899.38...4.');
+  // Solution.fromString('.92..175.5..2....8....3.2...75..496.2...6..75.697...3...8.9..2.7....3.899.38...4.');
 
   // Perfect Swordfish https://www.sudokuwiki.org/Sword_Fish_Strategy
   // Solution.fromString('52941.7.3..6..3..2..32......523...76637.5.2..19.62753.3...6942.2..83.6..96.7423.5');
 
   // Jellyfish https://www.sudokuwiki.org/Jelly_Fish_Strategy
   // Solution.fromString('..17538...5......77..89.1.....6.157.625478931.179.54......67..4.7.....1...63.97..');
+
+  // X Cycles: Nice Loops Rule 1 https://www.sudokuwiki.org/X_Cycles
+  Solution.fromString('.241..67..6..7.41.7..964.2.2465913871354872968796231544....976.35.71694.697.4..31');
+
+  // X Cycles: Nice Loops Rule 2 https://www.sudokuwiki.org/X_Cycles_Part_2
+  // Solution.fromString('8.4537....23614.856.5982.34...1.587.5..7.83.6.8.2.345.2..859..3.5.3712.8..84265.7');
+
+  // X Cycles: Nice Loops Rule 3 https://www.sudokuwiki.org/X_Cycles_Part_2
+  // Solution.fromString('.762..4...941.7.6.2..46...7.6.371...74.592.16...684.7.3.97.6..568.9.573.4578.36..');
 
   // From "Sudoku: The Clean One"
   // "Medium"
