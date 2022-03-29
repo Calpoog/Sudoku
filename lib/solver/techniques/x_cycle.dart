@@ -9,6 +9,8 @@ class CycleNode {
   final Set<Square> weak = {};
   final Set<Square> strong = {};
 
+  bool get isWeak => strong.isEmpty;
+
   CycleNode({required this.digit, required this.square});
 }
 
@@ -65,7 +67,7 @@ extension XCycleExtension on Solution {
       // print('graphed $d');
 
       for (var s in nodes.keys) {
-        // if (nodes[s]!.visited) continue;
+        if (nodes[s]!.visited) continue;
         // print('starting from $s');
         final cycle = findCycle(nodes: nodes, path: [], strengths: [], s: s);
         if (cycle != null) {
@@ -124,7 +126,10 @@ extension XCycleExtension on Solution {
     required List<Square> path,
     required List<bool> strengths,
     required Square s,
+    int? discontinuityIndex,
   }) {
+    final node = nodes[s]!;
+
     final startIndex = path.indexOf(s);
     if (startIndex >= 0) {
       // print('found cycle');
@@ -133,8 +138,9 @@ extension XCycleExtension on Solution {
       return null;
     }
 
+    if (!isValidSoFar(nodes: nodes, path: path, strengths: strengths)) return null;
+
     var newPath = [...path, s];
-    final node = nodes[s]!;
     node.visited = true;
     // seen shared squares between the first and last
     // final shared = path.isEmpty ? <Square>[] : seesSquares(s.seesUnion(path.first));
@@ -159,8 +165,43 @@ extension XCycleExtension on Solution {
     return null;
   }
 
+  bool isValidSoFar({
+    required Map<Square, CycleNode> nodes,
+    required List<Square> path,
+    required List<bool> strengths,
+  }) {
+    if (path.length < 3) return true;
+
+    int? discontinuityIndex;
+
+    // Start from a hard weak so we can establish a pattern
+    var firstWeak = strengths.indexOf(false);
+    if (firstWeak < 0) firstWeak = 0;
+
+    for (var i = 0; i < strengths.length; i++) {
+      final index = (i + firstWeak) % strengths.length;
+      final isStrong = strengths[index];
+      // Is weak where it should be strong
+      if (i % 2 == (discontinuityIndex == null ? 1 : 0) && !isStrong) {
+        // was weak + weak
+        if (!strengths[index - 1]) {
+          if (discontinuityIndex != null) return false;
+          discontinuityIndex = index;
+        }
+        // was previously strong, first discontinuity so means there was a strong + strong
+        else {
+          if (discontinuityIndex != null) return false;
+          discontinuityIndex = index - 1;
+        }
+      }
+    }
+
+    return true;
+  }
+
   bool isValidCycle({required Map<Square, CycleNode> nodes, required Cycle cycle}) {
     if (cycle.squares.length < 4) return false;
+    // print('isValidCycle');
 
     final strengths = cycle.strengths;
 
@@ -168,7 +209,7 @@ extension XCycleExtension on Solution {
     var firstWeak = strengths.indexOf(false);
     if (firstWeak < 0) firstWeak = 0;
 
-    for (var i = 0; i < strengths.length; i++) {
+    for (var i = 0; i <= strengths.length; i++) {
       final index = (i + firstWeak) % strengths.length;
       final isStrong = strengths[index];
       // Is weak where it should be strong

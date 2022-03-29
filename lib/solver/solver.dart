@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'techniques/avoidable_rectangle.dart';
 import 'techniques/technique.dart';
 import 'candidates.dart';
+import 'techniques/unique_rectangle.dart';
 import 'techniques/x_cycle.dart';
 import 'techniques/x_fish.dart';
 import 'techniques/y_wings.dart';
@@ -171,6 +172,10 @@ class Solution {
     return true;
   }
 
+  Square squareAt(int col, int row) {
+    return rows[row].squares[col];
+  }
+
   Candidates union(Iterable<Square> squares) {
     return squares.fold<Candidates>(Candidates(0), (previous, s) => candidates(s).union(previous));
   }
@@ -230,6 +235,7 @@ class Solution {
       () => jellyfish(rows, cols),
       () => jellyfish(cols, rows),
       xCycles,
+      uniqueRect,
     ];
     Technique? result = None();
     var round = 0;

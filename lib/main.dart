@@ -47,8 +47,19 @@ void main() {
   // Jellyfish https://www.sudokuwiki.org/Jelly_Fish_Strategy
   // Solution.fromString('..17538...5......77..89.1.....6.157.625478931.179.54......67..4.7.....1...63.97..');
 
+  // Unique Rectangles Rule 1 https://www.sudokuwiki.org/Unique_Rectangles
+  // Solution.fromString('..632481585.691.7...1785.....4.3768.38..62147.6741835....173..8...846.21..82597..');
+  // Rule 2
+  // Solution.fromString('42.9..386.6.2..7948.9.6.2517....3.259..1.26.32..5....8..4.2.5676827..439......812');
+  // Rule 2b
+  // Solution.fromString('.4186539..9..4..6..3.7924.1.28...94.519624..3.7.9.821.15..8.629.6..19.3.98.2.61..');
+  // Rule 2c
+  Solution.fromString('8.9....5.53.8.7.......9.8..2946.813.78.9.1..4.15..4.98..2.8.....581.3.7..6....48.');
+  // Rule 3
+  // Solution.fromString('...5.347.5..8.4.6.4...96.52857..96.43246.759...6..5.37285.61.4...9..8..5.43952.86');
+
   // X Cycles: Nice Loops Rule 1 https://www.sudokuwiki.org/X_Cycles
-  Solution.fromString('.241..67..6..7.41.7..964.2.2465913871354872968796231544....976.35.71694.697.4..31');
+  // Solution.fromString('.241..67..6..7.41.7..964.2.2465913871354872968796231544....976.35.71694.697.4..31');
 
   // X Cycles: Nice Loops Rule 2 https://www.sudokuwiki.org/X_Cycles_Part_2
   // Solution.fromString('8.4537....23614.856.5982.34...1.587.5..7.83.6.8.2.345.2..859..3.5.3712.8..84265.7');
