@@ -56,13 +56,27 @@ extension UniqueRectangleExtension on Solution {
                       if (result is! None) return result;
                     }
                   } else {
-                    // Roof have 2 other candidates
                     final lockedSet = extra1.union(extra2);
+                    final sharedUnit = lines[hasSharedRow ? roof1.row : roof1.col];
+
+                    // If the roof has a conjugate pair of the floor pair in a box (if they share one)
+                    // or its line, then the other candidate in the pair can be removed
+                    var c = Candidates(pair.value);
+                    bool hasConjugate(List<Square> squares, int d) =>
+                        squares.where((s) => candidates(s).has(d)).length == 2;
+                    for (var p in pair.each()) {
+                      if (hasConjugate(sharedUnit.squares, p) || hasConjugate(boxes[roof1.box].squares, p)) {
+                        c = c.remove(p);
+                        break;
+                      }
+                    }
+                    if (c.isSingle) return _type4(roof1, roof2, c.digit);
+
+                    // Roof have 2 other candidates
                     if (lockedSet.length == 2) {
                       // For 2C we treat this as a locked set and can make it work as a naked pair in shared unit
                       // There can only be one cell that has the locked set, otherwise a naked pair would have already
                       // eliminated these extra candidates from the unique rectangle.
-                      final sharedUnit = lines[hasSharedRow ? roof1.row : roof1.col];
                       var pairs = <Square>[];
                       var other = sharedUnit.squares.firstWhereOrNull((s) => candidates(s).equals(lockedSet));
                       var sees = <Square>{};
@@ -186,6 +200,13 @@ extension UniqueRectangleExtension on Solution {
       }
     }
     return UniqueRectangle('Type 3 UR for $pair in roof $roof1, $roof2');
+  }
+
+  Technique? _type4(Square roof1, Square roof2, int d) {
+    for (var s in [roof1, roof2]) {
+      if (!eliminate(s, d)) return null;
+    }
+    return UniqueRectangle('Type 4 UR for $d in $roof1, $roof2');
   }
 
   Technique? _type5(Square diag1, Square diag2, int d) {
