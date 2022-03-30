@@ -50,7 +50,11 @@ extension UniqueRectangleExtension on Solution {
                   if (!extra1.isEmpty && extra2.isEmpty) return _type1(roof1, pair);
                   // Roof each have the same 1 extra candidate
                   if (extra2.equals(extra1)) {
-                    if (extra1.isSingle) return _type2(roof1, roof2, extra1.digit);
+                    if (extra1.isSingle) {
+                      final result = _type2(roof1, roof2, extra1.digit);
+                      if (result == null) return null;
+                      if (result is! None) return result;
+                    }
                   } else {
                     // Roof have 2 other candidates
                     final lockedSet = extra1.union(extra2);
@@ -59,16 +63,39 @@ extension UniqueRectangleExtension on Solution {
                       // There can only be one cell that has the locked set, otherwise a naked pair would have already
                       // eliminated these extra candidates from the unique rectangle.
                       final sharedUnit = lines[hasSharedRow ? roof1.row : roof1.col];
+                      var pairs = <Square>[];
                       var other = sharedUnit.squares.firstWhereOrNull((s) => candidates(s).equals(lockedSet));
-                      var sees = {if (other != null) ...sharedUnit.squares};
+                      var sees = <Square>{};
+                      if (other != null) {
+                        sees.addAll(sharedUnit.squares);
+                        pairs.add(other);
+                      }
 
                       // if the roof shares a box then we can also check box for naked pair for type 3b
                       if (hasSharedBox) {
                         other = boxes[roof1.box].squares.firstWhereOrNull((s) => candidates(s).equals(lockedSet));
-                        if (other != null) sees.addAll(boxes[roof1.box].squares);
+                        if (other != null) {
+                          sees.addAll(boxes[roof1.box].squares);
+                          pairs.add(other);
+                        }
+                      }
+                      if (sees.isEmpty) {
+                        // Try looking for a triple pseudo-cell
+                        final withSet = sharedUnit.squares
+                            .where((s) => s != roof1 && s != roof2 && candidates(s).hasAny(lockedSet));
+                        for (var d2 = 1; d2 <= 9; d2++) {
+                          if (lockedSet.has(d2)) continue;
+                          var triple = lockedSet.add(d2);
+                          var matches = withSet.where((s) => triple.hasAll(candidates(s)));
+                          if (matches.length == 2) {
+                            sees.addAll(sharedUnit.squares);
+                            pairs.addAll(matches);
+                            break;
+                          }
+                        }
                       }
                       if (sees.isNotEmpty) {
-                        final result = _type3(roof1, roof2, sees, lockedSet);
+                        final result = _type3(roof1, roof2, sees, lockedSet, pairs);
                         if (result == null) return null;
                         if (result is! None) return result;
                       }
@@ -130,8 +157,9 @@ extension UniqueRectangleExtension on Solution {
   Technique? _type2(Square roof1, Square roof2, int d) {
     for (var unit in roof1.units) {
       if (roof2.units.contains(unit)) {
-        for (var s in unit.squares) {
-          if (s == roof1 || s == roof2) continue;
+        var affected = unit.squares.where((s) => s != roof1 && s != roof2 && candidates(s).has(d)).toList();
+        if (affected.isEmpty) return None();
+        for (var s in affected) {
           if (!eliminate(s, d)) return null;
         }
       }
@@ -148,10 +176,8 @@ extension UniqueRectangleExtension on Solution {
     return UniqueRectangle('Type 2C UR for $d in diagonals $s1, $s2');
   }
 
-  Technique? _type3(Square roof1, Square roof2, Set<Square> sees, Candidates pair) {
-    var affected = sees
-        .where((s) => s != roof1 && s != roof2 && !candidates(s).equals(pair) && candidates(s).hasAny(pair))
-        .toList();
+  Technique? _type3(Square roof1, Square roof2, Set<Square> sees, Candidates pair, List<Square> pseudoCells) {
+    var affected = sees.where((s) => s != roof1 && s != roof2 && !pseudoCells.contains(s)).toList();
     if (affected.isEmpty) return None();
 
     for (var s in affected) {

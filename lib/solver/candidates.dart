@@ -67,6 +67,10 @@ class Candidates {
     return Candidates(value & ~other.value);
   }
 
+  Candidates add(int d) {
+    return Candidates(value | digitsBitmask[d]!);
+  }
+
   bool equals(Candidates other) {
     return value == other.value;
   }
