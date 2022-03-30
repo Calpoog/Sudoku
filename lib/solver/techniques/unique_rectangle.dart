@@ -59,9 +59,16 @@ extension UniqueRectangleExtension on Solution {
                       // There can only be one cell that has the locked set, otherwise a naked pair would have already
                       // eliminated these extra candidates from the unique rectangle.
                       final sharedUnit = lines[hasSharedRow ? roof1.row : roof1.col];
-                      final other = sharedUnit.squares.firstWhereOrNull((s) => candidates(s).equals(lockedSet));
-                      if (other != null) {
-                        final result = _type3(roof1, roof2, sharedUnit, other);
+                      var other = sharedUnit.squares.firstWhereOrNull((s) => candidates(s).equals(lockedSet));
+                      var sees = {if (other != null) ...sharedUnit.squares};
+
+                      // if the roof shares a box then we can also check box for naked pair for type 3b
+                      if (hasSharedBox) {
+                        other = boxes[roof1.box].squares.firstWhereOrNull((s) => candidates(s).equals(lockedSet));
+                        if (other != null) sees.addAll(boxes[roof1.box].squares);
+                      }
+                      if (sees.isNotEmpty) {
+                        final result = _type3(roof1, roof2, sees, lockedSet);
                         if (result == null) return null;
                         if (result is! None) return result;
                       }
@@ -141,10 +148,10 @@ extension UniqueRectangleExtension on Solution {
     return UniqueRectangle('Type 2C UR for $d in diagonals $s1, $s2');
   }
 
-  Technique? _type3(Square roof1, Square roof2, Unit sharedUnit, Square nakedPair) {
-    var pair = candidates(nakedPair);
-    var affected =
-        sharedUnit.squares.where((s) => s != nakedPair && s != roof1 && s != roof2 && candidates(s).hasAny(pair));
+  Technique? _type3(Square roof1, Square roof2, Set<Square> sees, Candidates pair) {
+    var affected = sees
+        .where((s) => s != roof1 && s != roof2 && !candidates(s).equals(pair) && candidates(s).hasAny(pair))
+        .toList();
     if (affected.isEmpty) return None();
 
     for (var s in affected) {
