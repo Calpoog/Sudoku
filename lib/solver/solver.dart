@@ -213,10 +213,10 @@ class Solution {
     stopwatch.stop();
     if (result) {
       print('RESULT:');
-      display();
     } else {
       print('Unsolvable');
     }
+    display();
     print(stopwatch.elapsed);
   }
 
@@ -248,9 +248,8 @@ class Solution {
         result = logicOrder[i]();
         if (result is None) continue;
         if (result is Technique) {
-          // First technique doesn't need rerun when it hits because constraint prop happens implicitly
           print(result.message);
-          if (i > 0) break;
+          break;
         } else {
           // If it was null, or applied a technique, we break the for to restart logic order
           break;

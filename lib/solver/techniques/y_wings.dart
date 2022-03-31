@@ -13,14 +13,15 @@ extension YWingsExtension on Solution {
 
     for (var i = 0; i < hinges.length; i++) {
       final hinge = hinges.elementAt(i);
-      for (var j = useZ ? 0 : i + 1; j < pincers.length; j++) {
+      for (var j = 0; j < pincers.length; j++) {
         final pincer1 = pincers.elementAt(j);
         if (_isPincer(hinge, pincer1, useZ)) {
-          for (var k = j + 1; k < pincers.length; k++) {
+          for (var k = 0; k < pincers.length; k++) {
+            if (k == j) continue;
             final pincer2 = pincers.elementAt(k);
             if (_isPincer(hinge, pincer2, useZ)) {
               // If it's also a pincer of the hinge, we know p1 and p2 share 1 value with pivot.
-              // So they must share a value, and that value must not be in pivot.
+              // So they must share another value, and that value must not be in pivot.
               final shared = candidates(pincer1).intersection(candidates(pincer2));
               if (shared.isSingle && (useZ || !candidates(hinge).hasAll(shared))) {
                 var sees = pincer1.peers.where((s) => pincer2.peers.contains(s) && candidates(s).has(shared.digit));
