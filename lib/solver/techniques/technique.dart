@@ -3,6 +3,11 @@ abstract class Technique {
   final int score;
 
   Technique(this.message, this.score);
+
+  @override
+  String toString() {
+    return runtimeType.toString();
+  }
 }
 
 class None extends Technique {

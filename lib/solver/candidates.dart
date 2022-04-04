@@ -8,6 +8,14 @@ class Candidates {
 
   Candidates([int? candidates]) : value = candidates ?? allDigits;
 
+  factory Candidates.from(Candidates other) {
+    return Candidates(other.value);
+  }
+
+  factory Candidates.fromDigit(int d) {
+    return Candidates(digitsBitmask[d]);
+  }
+
   bool has(int i) {
     return value & digitsBitmask[i]! > 0;
   }

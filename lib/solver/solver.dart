@@ -120,9 +120,17 @@ class Solution {
     }
   }
 
-  factory Solution.fromString(String grid) {
+  factory Solution.fromString(String grid, [useBrute = false]) {
     final g = grid.replaceAll('.', '0').replaceAll(RegExp(r'[^\d]'), '').split('').map((d) => int.parse(d));
-    return Solution._internal(g)..solve();
+    final s = Solution._internal(g);
+
+    if (useBrute) {
+      s.solveBrute();
+    } else {
+      s.solve();
+    }
+
+    return s;
   }
 
   bool assign(Square s, int d) {
@@ -211,8 +219,9 @@ class Solution {
     final stopwatch = Stopwatch()..start();
     final result = applyLogic();
     stopwatch.stop();
-    if (result) {
+    if (result != null) {
       print('RESULT:');
+      print(result.join(', '));
     } else {
       print('Unsolvable');
     }
@@ -220,7 +229,8 @@ class Solution {
     print(stopwatch.elapsed);
   }
 
-  bool applyLogic() {
+  List<Technique>? applyLogic() {
+    final List<Technique> used = [];
     final List<Technique? Function()> logicOrder = [
       nakedSubset,
       hiddenSubset,
@@ -232,9 +242,10 @@ class Solution {
       () => swordfish(rows, cols),
       () => swordfish(cols, rows),
       xyzWings,
+      xCycles,
+      medusa,
       () => jellyfish(rows, cols),
       () => jellyfish(cols, rows),
-      xCycles,
       uniqueRect,
     ];
     Technique? result = None();
@@ -248,6 +259,7 @@ class Solution {
         result = logicOrder[i]();
         if (result is None) continue;
         if (result is Technique) {
+          used.add(result);
           print(result.message);
           break;
         } else {
@@ -258,10 +270,42 @@ class Solution {
 
       if (result is None) {
         print('all logic failed');
-        return false;
+        return null;
       }
     }
-    return true;
+    return used;
+  }
+
+  CandidateState? search([int n = 0]) {
+    // if (state == null) return null;
+    if (isSolved()) return _candidates;
+    print('Search $n');
+
+    // Pick the cell with the least remaining candidates and try out each
+    final x = squares.where((s) => _candidates[s]!.length > 1);
+
+    final s = x.sorted((a, b) => candidates(a).length - candidates(b).length).first;
+
+    var original = _candidates;
+    for (var d in candidates(s).each()) {
+      print('Trying $d for $s');
+      _candidates = copy(_candidates);
+      if (assign(s, d) && search(n + 1) != null) {
+        return _candidates;
+      }
+      print('Up to $n');
+      _candidates = original;
+    }
+
+    return null;
+  }
+
+  solveBrute() {
+    final stopwatch = Stopwatch()..start();
+    search();
+    stopwatch.stop();
+    display();
+    print(stopwatch.elapsed);
   }
 
   // CandidateState? search(CandidateState? candidates, [int n = 0]) {
