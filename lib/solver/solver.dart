@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 
-import 'techniques/avoidable_rectangle.dart';
 import 'techniques/technique.dart';
 import 'candidates.dart';
 import 'techniques/unique_rectangle.dart';
@@ -10,7 +9,6 @@ import 'techniques/x_cycle.dart';
 import 'techniques/x_fish.dart';
 import 'techniques/y_wings.dart';
 import 'techniques/singles_chain.dart';
-import 'techniques/box_intersection.dart';
 import 'techniques/subsets.dart';
 import 'units.dart';
 
@@ -18,16 +16,14 @@ final digitMap = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0};
 final allDigits = int.parse('111111111', radix: 2);
 final digitsBitmask = Map.fromEntries(List.generate(9, (i) => MapEntry(i + 1, 1 << 8 - i)));
 final bitmaskDigits = Map.fromEntries(List.generate(9, (i) => MapEntry(1 << 8 - i, i + 1)));
-final pairs = [
-  for (var i = 9; i > 0; i--)
-    for (var j = i - 1; j > 0; j--) Candidates(digitsBitmask[i]! | digitsBitmask[j]!)
-];
-final triplets = [
-  for (var i = 9; i > 0; i--)
-    for (var j = i - 1; j > 0; j--)
-      for (var k = j - 1; k > 0; k--) Candidates(digitsBitmask[i]! | digitsBitmask[j]! | digitsBitmask[k]!)
-];
-final combos = [...pairs, ...triplets];
+final singles = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+final fullCandidates = Candidates();
+final pairs =
+    combinations(singles, 2).map((group) => group.fold<Candidates>(Candidates(0), (prev, d) => prev.add(d))).toList();
+final triplets =
+    combinations(singles, 3).map((group) => group.fold<Candidates>(Candidates(0), (prev, d) => prev.add(d))).toList();
+final quads =
+    combinations(singles, 4).map((group) => group.fold<Candidates>(Candidates(0), (prev, d) => prev.add(d))).toList();
 
 List<List<T>> combinations<T>(List<T> list, int size, [List<T>? previous]) {
   previous ??= [];
@@ -63,54 +59,151 @@ extension SplittableList<T> on Iterable<T> {
   }
 }
 
-class Solution {
-  final List<Row> rows = List.generate(9, (index) => Row(index));
-  final List<Column> cols = List.generate(9, (index) => Column(index));
-  final List<Box> boxes = List.generate(9, (index) => Box(index));
-  late final List<Unit> units = [];
+final List<Row> rows = List.generate(9, (index) => Row(index));
+final List<Column> cols = List.generate(9, (index) => Column(index));
+final List<Box> boxes = List.generate(9, (index) => Box(index));
+final List<Unit> units = [...rows, ...cols, ...boxes];
+final _squares = List.generate(81, (i) {
+  final row = (i / 9).floor();
+  final col = i % 9;
+  final box = (row / 3).floor() * 3 + (col / 3).floor();
+  final square = Square(
+    row: row,
+    col: col,
+    box: box,
+    index: i,
+    // isClue: clues.elementAt(i) > 0,
+  );
+  rows[row].squares.add(square);
+  cols[col].squares.add(square);
+  boxes[box].squares.add(square);
+  square.units.addAll([rows[row], cols[col], boxes[box]]);
+  return square;
+});
+final squares = _squares.map((s) {
+  s.peers
+    ..addAll(
+      s.units.fold<Set<Square>>(
+        <Square>{},
+        (peers, unit) {
+          return peers..addAll(unit.squares);
+        },
+      ),
+    )
+    ..remove(s);
+  return s;
+}).toList();
+
+class Puzzle {
+  final rand = Random();
+  List<Technique> techniques = [];
   CandidateState _candidates = {};
 
-  /// A map of [Square]s to int representing its candidates as a bitmask
-  /// 100101011 = 1..4.6.89
-  // final CandidateState candidates = {};
-  late final List<Square> squares;
+  Puzzle.fromClues(Iterable<int> clues) {
+    _setup(clues);
+  }
 
-  Solution._internal(Iterable<int> clues) {
-    squares = List.generate(81, (i) {
-      final row = (i / 9).floor();
-      final col = i % 9;
-      final box = (row / 3).floor() * 3 + (col / 3).floor();
-      final square = Square(
-        row: row,
-        col: col,
-        box: box,
-        index: i,
-        isClue: clues.elementAt(i) > 0,
-      );
-      rows[row].squares.add(square);
-      cols[col].squares.add(square);
-      boxes[box].squares.add(square);
-      square.units.addAll([rows[row], cols[col], boxes[box]]);
-      _candidates[square] = Candidates(allDigits);
-      return square;
-    });
+  Puzzle.fromString(String grid) {
+    final g = grid.replaceAll('.', '0').replaceAll(RegExp(r'[^\d]'), '').split('').map((d) => int.parse(d));
+    _setup(g);
+  }
 
-    units
-      ..addAll(rows)
-      ..addAll(cols)
-      ..addAll(boxes);
+  Puzzle.solved() {
+    _create();
+  }
 
-    for (var square in squares) {
-      square.peers
-        ..addAll(
-          square.units.fold<Set<Square>>(
-            <Square>{},
-            (peers, unit) {
-              return peers..addAll(unit.squares);
-            },
-          ),
-        )
-        ..remove(square);
+  Puzzle.withDifficulty({min = 0, max = 1000000}) {
+    while (true) {
+      print('STARTING OVER');
+      final solved = Puzzle.solved();
+      final clues = squares.map((s) => solved.candidates(s).digit).toList();
+      var difficulty = 0;
+      var removed = 0;
+
+      while (removed < 40) {
+        var i = rand.nextInt(81);
+        if (clues[i] > 0) {
+          clues[i] = 0;
+          removed++;
+        }
+      }
+
+      for (var tries = 0; tries < 1000; tries++) {
+        var i = rand.nextInt(81);
+        final c = clues[i];
+        if (c == 0) continue;
+        clues[i] = 0;
+        print('Removing $c from ${squares[i]}');
+        print(clues);
+
+        // In order to be well formed, there must be 8 unique digits in the givens
+        if (Set.from(clues).length < 8) {
+          print('Oops, not well-formed');
+          clues[i] = c;
+          continue;
+        }
+
+        techniques = [];
+        _setup(clues);
+        print('After Setup');
+        display();
+
+        final count = countSolutions();
+
+        // If this causes multiple solutions, try again
+        if (count > 1) {
+          clues[i] = c;
+          print('Multiple solutions');
+          break;
+        }
+
+        final result = solve();
+
+        // If it was logically solved, the difficulty may or may not kill the loop
+        // If it doesn't it will continue to remove squares
+        if (result) {
+          final used = <Type>{};
+          difficulty = techniques.fold(0, (prev, t) {
+            return (used.add(t.runtimeType) ? t.difficulty : t.reuse) + prev;
+          });
+          final numClues = clues.where((c) => c > 0).length;
+          final t = techniques.where((t) => t is! HiddenSingle && t is! NakedSingle);
+          print(t);
+          print(t.map((t) => t.message).join('\n'));
+          print('Solution with $difficulty difficulty and $numClues clues');
+          display();
+          print(clues.join(''));
+          if (difficulty >= min && difficulty <= max && isSolved()) return;
+        } else {
+          clues[i] = c;
+          print('No solution with logic');
+        }
+      }
+    }
+  }
+
+  void _create() {
+    _setup(List.filled(81, 0));
+
+    for (var b = 0; b <= 8; b += 4) {
+      var box = boxes[b];
+      for (var s in box.squares) {
+        var c = candidates(s).each();
+        if (c.length > 1) {
+          var d = c.elementAt(rand.nextInt(c.length));
+          assign(s, d);
+        }
+      }
+    }
+
+    search(random: true);
+  }
+
+  void _setup(Iterable<int> clues) {
+    techniques = [];
+
+    for (var s in squares) {
+      _candidates[s] = Candidates();
     }
 
     for (int i = 0; i < clues.length; i++) {
@@ -120,28 +213,20 @@ class Solution {
     }
   }
 
-  factory Solution.fromString(String grid, [useBrute = false]) {
-    final g = grid.replaceAll('.', '0').replaceAll(RegExp(r'[^\d]'), '').split('').map((d) => int.parse(d));
-    final s = Solution._internal(g);
-
-    if (useBrute) {
-      s.solveBrute();
-    } else {
-      s.solve();
-    }
-
-    return s;
+  @override
+  String toString() {
+    return squares.map((s) => candidates(s).digit).join('');
   }
 
-  bool assign(Square s, int d) {
+  bool assign(Square s, int d, [bool propagate = true]) {
     final others = candidates(s).remove(d);
     for (var d2 in others.each()) {
-      if (!eliminate(s, d2)) return false;
+      if (!eliminate(s, d2, propagate)) return false;
     }
     return true;
   }
 
-  bool eliminate(Square s, int d) {
+  bool eliminate(Square s, int d, [bool propagate = true]) {
     var c = candidates(s);
     // Already removed
     if (!c.has(d)) return true;
@@ -149,31 +234,34 @@ class Solution {
     c = _candidates[s] = c.remove(d);
     // All candidates removed, a contradiction
     if (c.isEmpty) {
-      print('Contradiction eliminating $d from $s');
-      display();
+      // print('Contradiction eliminating $d from $s');
       return false;
     }
 
-    // Only one candidate remains, propagate its removal from peers
-    // Naked singles
-    if (c.isSingle) {
-      // print('Single candidate $d in $s');
-      for (var peer in s.peers) {
-        if (!eliminate(peer, c.digit)) return false;
+    if (propagate) {
+      // Only one candidate remains, propagate its removal from peers
+      // Naked singles
+      if (c.isSingle) {
+        // print('Single candidate $d in $s');
+        techniques.add(NakedSingle('for $d in $s'));
+        for (var peer in s.peers) {
+          if (!eliminate(peer, c.digit)) return false;
+        }
       }
-    }
 
-    // Check if the square's units now only have 1 place d can be put
-    // Hidden singles
-    for (final unit in s.units) {
-      final dPlaces = unit.squares.where((s) => candidates(s).has(d));
-      if (dPlaces.isEmpty) {
-        print('Contradiction: $unit has no place for $d');
-        display();
-        return false;
-      } else if (dPlaces.length == 1) {
-        // print('Hidden single $d in $unit');
-        if (!assign(dPlaces.first, d)) return false;
+      // Check if the square's units now only have 1 place d can be put
+      // Hidden singles
+      for (final unit in s.units) {
+        final dPlaces = unit.squares.where((s) => candidates(s).has(d));
+        if (dPlaces.isEmpty) {
+          // print('Contradiction: $unit has no place for $d');
+          // display();
+          return false;
+        } else if (dPlaces.length == 1 && !candidates(dPlaces.first).isSingle) {
+          // print('Hidden single $d in $unit');
+          techniques.add(HiddenSingle('for $d in $s of $unit'));
+          if (!assign(dPlaces.first, d)) return false;
+        }
       }
     }
 
@@ -215,29 +303,25 @@ class Solution {
     return _candidates.values.every((c) => c.isSingle);
   }
 
-  solve() {
+  bool solve() {
     final stopwatch = Stopwatch()..start();
     final result = applyLogic();
     stopwatch.stop();
-    if (result != null) {
-      print('RESULT:');
-      print(result.join(', '));
-    } else {
-      print('Unsolvable');
-    }
-    display();
     print(stopwatch.elapsed);
+    return result;
   }
 
-  List<Technique>? applyLogic() {
-    final List<Technique> used = [];
+  bool applyLogic() {
     final List<Technique? Function()> logicOrder = [
-      nakedSubset,
-      hiddenSubset,
-      pointingPairs,
+      () => nakedSubset(pairs),
+      () => hiddenSubset(pairs),
+      () => nakedSubset(triplets),
+      () => hiddenSubset(triplets),
       () => xWings(rows, cols),
       () => xWings(cols, rows),
       singlesChain,
+      () => nakedSubset(quads),
+      () => hiddenSubset(quads),
       yWings,
       () => swordfish(rows, cols),
       () => swordfish(cols, rows),
@@ -252,52 +336,70 @@ class Solution {
     var round = 0;
     while (result != null && !isSolved()) {
       round++;
-      print('Round $round of logic');
-      display();
 
       for (var i = 0; i < logicOrder.length; i++) {
         result = logicOrder[i]();
         if (result is None) continue;
         if (result is Technique) {
-          used.add(result);
-          print(result.message);
-          break;
-        } else {
-          // If it was null, or applied a technique, we break the for to restart logic order
-          break;
+          techniques.add(result);
         }
+        // If it was null, or applied a technique, we break the for to restart logic order
+        break;
       }
 
+      // All logic ran with no technique applied
       if (result is None) {
-        print('all logic failed');
-        return null;
+        return false;
       }
     }
-    return used;
+    return true;
   }
 
-  CandidateState? search([int n = 0]) {
+  CandidateState? search({int n = 0, random = false}) {
     // if (state == null) return null;
     if (isSolved()) return _candidates;
-    print('Search $n');
 
     // Pick the cell with the least remaining candidates and try out each
-    final x = squares.where((s) => _candidates[s]!.length > 1);
+    var x = squares.where((s) => _candidates[s]!.length > 1).toList();
 
-    final s = x.sorted((a, b) => candidates(a).length - candidates(b).length).first;
+    if (random) {
+      shuffle(x);
+    } else {
+      x = x.sorted((a, b) => candidates(a).length - candidates(b).length);
+    }
+
+    final s = x.first;
 
     var original = _candidates;
     for (var d in candidates(s).each()) {
-      print('Trying $d for $s');
       _candidates = copy(_candidates);
-      if (assign(s, d) && search(n + 1) != null) {
+      if (assign(s, d) && search(n: n + 1) != null) {
         return _candidates;
       }
-      print('Up to $n');
       _candidates = original;
     }
 
     return null;
+  }
+
+  int countSolutions({n = 0, count = 0}) {
+    // if (state == null) return null;
+    if (isSolved()) return count + 1;
+
+    final s = squares.firstWhereOrNull((s) => candidates(s).length > 1)!;
+
+    var original = _candidates;
+    for (var d in candidates(s).each()) {
+      _candidates = copy(_candidates);
+      if (assign(s, d)) {
+        count += countSolutions(n: n + 1);
+        _candidates = original;
+        if (count > 1) return 2;
+      }
+      _candidates = original;
+    }
+
+    return 0;
   }
 
   solveBrute() {

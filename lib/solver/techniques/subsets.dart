@@ -3,8 +3,8 @@ import '../candidates.dart';
 import '../solver.dart';
 import '../units.dart';
 
-extension SubsetExtension on Solution {
-  Technique? nakedSubset() {
+extension SubsetExtension on Puzzle {
+  Technique? nakedSubset(List<Candidates> combos) {
     for (var unit in units) {
       for (var combo in combos) {
         var matches = <Square>[];
@@ -20,7 +20,7 @@ extension SubsetExtension on Solution {
                 if (!eliminate(s, d)) return null;
               }
             }
-            return NakedSubset('Naked subset $combo found in $unit');
+            return _nakedSubset(combo: combo, unit: unit);
           }
         }
       }
@@ -29,7 +29,7 @@ extension SubsetExtension on Solution {
     return None();
   }
 
-  Technique? hiddenSubset() {
+  Technique? hiddenSubset(List<Candidates> combos) {
     for (var unit in units) {
       for (var combo in combos) {
         var matches = <Square>[];
@@ -54,7 +54,7 @@ extension SubsetExtension on Solution {
               }
             }
           }
-          return HiddenSubset('Hidden subset $combo found in $unit');
+          return _hiddenSubset(combo: combo, unit: unit);
         }
       }
     }
@@ -63,10 +63,66 @@ extension SubsetExtension on Solution {
   }
 }
 
-class NakedSubset extends Technique {
-  NakedSubset(String message) : super(message, 100);
+Technique _nakedSubset({required Candidates combo, required Unit unit}) {
+  switch (combo.length) {
+    case 2:
+      return NakedPair(combo: combo, unit: unit);
+    case 3:
+      return NakedTriple(combo: combo, unit: unit);
+    case 4:
+      return NakedQuad(combo: combo, unit: unit);
+  }
+  return None();
 }
 
-class HiddenSubset extends Technique {
-  HiddenSubset(String message) : super(message, 100);
+Technique _hiddenSubset({required Candidates combo, required Unit unit}) {
+  switch (combo.length) {
+    case 2:
+      return HiddenPair(combo: combo, unit: unit);
+    case 3:
+      return HiddenTriple(combo: combo, unit: unit);
+    case 4:
+      return HiddenQuad(combo: combo, unit: unit);
+  }
+  return None();
+}
+
+class Subset extends Technique {
+  Subset({
+    required String type,
+    required Candidates combo,
+    required Unit unit,
+    required int difficulty,
+    required int reuse,
+  }) : super('$type $combo found in $unit', difficulty, reuse);
+}
+
+class NakedPair extends Subset {
+  NakedPair({required Candidates combo, required Unit unit})
+      : super(type: 'Naked Pair', combo: combo, unit: unit, difficulty: 750, reuse: 500);
+}
+
+class HiddenPair extends Subset {
+  HiddenPair({required Candidates combo, required Unit unit})
+      : super(type: 'Hidden Pair', combo: combo, unit: unit, difficulty: 1500, reuse: 1200);
+}
+
+class NakedTriple extends Subset {
+  NakedTriple({required Candidates combo, required Unit unit})
+      : super(type: 'Naked Triple', combo: combo, unit: unit, difficulty: 2000, reuse: 1400);
+}
+
+class HiddenTriple extends Subset {
+  HiddenTriple({required Candidates combo, required Unit unit})
+      : super(type: 'Hidden Triple', combo: combo, unit: unit, difficulty: 2400, reuse: 1600);
+}
+
+class NakedQuad extends Subset {
+  NakedQuad({required Candidates combo, required Unit unit})
+      : super(type: 'Naked Quad', combo: combo, unit: unit, difficulty: 5000, reuse: 4000);
+}
+
+class HiddenQuad extends Subset {
+  HiddenQuad({required Candidates combo, required Unit unit})
+      : super(type: 'Hidden Quad', combo: combo, unit: unit, difficulty: 7000, reuse: 5000);
 }

@@ -35,7 +35,7 @@ class Cycle {
   }
 }
 
-extension XCycleExtension on Solution {
+extension XCycleExtension on Puzzle {
   Technique? xCycles() {
     for (var d = 1; d <= 9; d++) {
       final nodes = <Square, CycleNode>{};
@@ -104,7 +104,6 @@ extension XCycleExtension on Solution {
       for (var s in affected) {
         if (!eliminate(s, d)) return null;
       }
-      display();
       return XCycle('XCycle Rule 1 for $d, $cycle');
     }
 
@@ -238,5 +237,5 @@ extension XCycleExtension on Solution {
 }
 
 class XCycle extends Technique {
-  XCycle(String message) : super(message, 100);
+  XCycle(String message) : super(message, 12000, 8000);
 }

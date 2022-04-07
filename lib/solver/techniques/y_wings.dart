@@ -2,7 +2,7 @@ import 'technique.dart';
 import '../solver.dart';
 import '../units.dart';
 
-extension YWingsExtension on Solution {
+extension YWingsExtension on Puzzle {
   Technique? xyzWings() {
     return yWings(true);
   }
@@ -27,7 +27,6 @@ extension YWingsExtension on Solution {
                 var sees = pincer1.peers.where((s) => pincer2.peers.contains(s) && candidates(s).has(shared.digit));
                 if (useZ) sees = sees.where((s) => hinge.peers.contains(s));
                 if (sees.isNotEmpty) {
-                  display();
                   for (var s in sees) {
                     if (!eliminate(s, shared.digit)) return null;
                   }
@@ -53,9 +52,9 @@ extension YWingsExtension on Solution {
 }
 
 class YWing extends Technique {
-  YWing(String message) : super(message, 100);
+  YWing(String message) : super(message, 7000, 5000);
 }
 
 class XYZWing extends Technique {
-  XYZWing(String message) : super(message, 100);
+  XYZWing(String message) : super(message, 9000, 6500);
 }

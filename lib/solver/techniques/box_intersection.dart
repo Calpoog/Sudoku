@@ -1,7 +1,8 @@
+import '../units.dart';
 import 'technique.dart';
 import '../solver.dart';
 
-extension BoxIntersectionExtension on Solution {
+extension BoxIntersectionExtension on Puzzle {
   Technique? pointingPairs() {
     for (var b = 0; b < boxes.length; b++) {
       final box = boxes[b];
@@ -24,7 +25,7 @@ extension BoxIntersectionExtension on Solution {
                   if (!eliminate(s, d)) return null;
                 }
                 return BoxLineIntersection(
-                    'Box/Line reduction $d between $box and ${isRow ? 'Row' : 'Col'} ${i + 1 + (isRow ? box.rowOffset : box.colOffset)}');
+                    d: d, box: box, line: (isRow ? rows[box.rowOffset + i] : cols[box.colOffset + i]));
               }
             }
           }
@@ -45,7 +46,7 @@ extension BoxIntersectionExtension on Solution {
                 if (!eliminate(s, d)) return null;
               }
               return PointingPair(
-                  'Pointing pair $d between $box and ${isRow ? 'Row' : 'Col'} ${index + 1 + (isRow ? box.rowOffset : box.colOffset)}');
+                  d: d, box: box, line: (isRow ? rows[box.rowOffset + index] : cols[box.colOffset + index]));
             }
           }
         }
@@ -57,9 +58,11 @@ extension BoxIntersectionExtension on Solution {
 }
 
 class PointingPair extends Technique {
-  PointingPair(String message) : super(message, 100);
+  PointingPair({required int d, required Box box, required Unit line})
+      : super('Pointing pair for $d between $box and $line', 350, 200);
 }
 
 class BoxLineIntersection extends Technique {
-  BoxLineIntersection(String message) : super(message, 100);
+  BoxLineIntersection({required int d, required Box box, required Unit line})
+      : super('Box/Line reduction for $d between $box and $line', 350, 200);
 }

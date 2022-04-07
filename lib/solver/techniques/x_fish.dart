@@ -5,26 +5,26 @@ import '../candidates.dart';
 import '../solver.dart';
 import '../units.dart';
 
-extension XFishExtension on Solution {
+extension XFishExtension on Puzzle {
   Technique? xWings(List<Unit> primary, List<Unit> secondary) {
-    final result = xFish(primary, secondary, 2);
+    final result = _xFish(primary, secondary, 2);
     if (result == null) return null;
-    return result == '' ? None() : XWing('Xwing $result');
+    return result;
   }
 
   Technique? swordfish(List<Unit> primary, List<Unit> secondary) {
-    final result = xFish(primary, secondary, 3);
+    final result = _xFish(primary, secondary, 3);
     if (result == null) return null;
-    return result == '' ? None() : Swordfish('Swordfish $result');
+    return result;
   }
 
   Technique? jellyfish(List<Unit> primary, List<Unit> secondary) {
-    final result = xFish(primary, secondary, 4);
+    final result = _xFish(primary, secondary, 4);
     if (result == null) return null;
-    return result == '' ? None() : Jellyfish('Jellyfish $result');
+    return result;
   }
 
-  String? xFish(List<Unit> primary, List<Unit> secondary, [int size = 2]) {
+  Technique? _xFish(List<Unit> primary, List<Unit> secondary, [int size = 2]) {
     final isRow = primary.first is Row;
     for (var d = 1; d <= 9; d++) {
       final maskedPrimary = primary.map((line) => _maskLine(line, d)).toList();
@@ -62,19 +62,26 @@ extension XFishExtension on Solution {
               .where((s) => candidates(s).has(d) && !combo.contains(primary[isRow ? s.row : s.col])));
         }
         if (affected.isNotEmpty) {
-          display();
           for (var s in affected) {
             if (!eliminate(s, d)) return null;
           }
           final p = combo.map((c) => c.simple()).join('');
           final s = counts.keys.sorted((a, b) => a - b).map((k) => secondary[k].simple()).join('');
-          final location = isRow ? [p, s] : [s, p];
-          return '${combo.map((l) => maskedPrimary[l.index].length).join('-')} for $d in ${location.join('')}';
+          final location = (isRow ? [p, s] : [s, p]).toString();
+          final shape = combo.map((l) => maskedPrimary[l.index].length).join('-');
+          switch (size) {
+            case 2:
+              return XWing(d: d, shape: shape, location: location);
+            case 3:
+              return XWing(d: d, shape: shape, location: location);
+            case 4:
+              return XWing(d: d, shape: shape, location: location);
+          }
         }
       }
     }
 
-    return '';
+    return None();
   }
 
   /// Creates a Candidates bitmask that instead represents the locations of d in the line
@@ -84,14 +91,37 @@ extension XFishExtension on Solution {
   }
 }
 
-class XWing extends Technique {
-  XWing(String message) : super(message, 100);
+class _XFish extends Technique {
+  _XFish({
+    required String type,
+    required String shape,
+    required String location,
+    required int d,
+    required int difficulty,
+    required int reuse,
+  }) : super('$type $shape for $d in $location', difficulty, reuse);
 }
 
-class Swordfish extends Technique {
-  Swordfish(String message) : super(message, 100);
+class XWing extends _XFish {
+  XWing({
+    required String shape,
+    required String location,
+    required int d,
+  }) : super(type: 'XWing', location: location, d: d, shape: shape, difficulty: 2800, reuse: 1600);
 }
 
-class Jellyfish extends Technique {
-  Jellyfish(String message) : super(message, 100);
+class Swordfish extends _XFish {
+  Swordfish({
+    required String shape,
+    required String location,
+    required int d,
+  }) : super(type: 'Swordfish', location: location, d: d, shape: shape, difficulty: 8000, reuse: 6000);
+}
+
+class Jellyfish extends _XFish {
+  Jellyfish({
+    required String shape,
+    required String location,
+    required int d,
+  }) : super(type: 'Jellyfish', location: location, d: d, shape: shape, difficulty: 10000, reuse: 7000);
 }

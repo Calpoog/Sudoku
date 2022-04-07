@@ -14,7 +14,7 @@ import 'technique.dart';
 //   final List<Square> roof;
 // }
 
-extension UniqueRectangleExtension on Solution {
+extension UniqueRectangleExtension on Puzzle {
   Technique? uniqueRect() {
     for (var pair in pairs) {
       var sPairs = squares.where((s) => candidates(s).equals(pair));
@@ -218,5 +218,5 @@ extension UniqueRectangleExtension on Solution {
 }
 
 class UniqueRectangle extends Technique {
-  UniqueRectangle(String message) : super(message, 100);
+  UniqueRectangle(String message) : super(message, 15000, 8000);
 }

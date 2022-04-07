@@ -2,7 +2,7 @@ import '../solver.dart';
 import '../units.dart';
 import 'technique.dart';
 
-extension AvoidableRectangleExtension on Solution {
+extension AvoidableRectangleExtension on Puzzle {
   Technique? avoidableRect() {
     for (var d = 1; d <= 9; d++) {
       final ds = squares.where((s) => candidates(s).value == bitmaskDigits[d]);
@@ -37,5 +37,5 @@ extension AvoidableRectangleExtension on Solution {
 }
 
 class AvoidableRectangle extends Technique {
-  AvoidableRectangle(String message) : super(message, 100);
+  AvoidableRectangle(String message) : super(message, 100, 100);
 }

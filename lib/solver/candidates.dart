@@ -43,8 +43,7 @@ class Candidates {
   bool get isEmpty => value == 0;
 
   int get digit {
-    assert(isSingle);
-    return bitmaskDigits[value]!;
+    return bitmaskDigits[value] ?? 0;
   }
 
   bool get isSingle {

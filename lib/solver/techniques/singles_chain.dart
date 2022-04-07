@@ -19,7 +19,7 @@ class ColorNode {
 
 typedef Graph = Map<Square, ColorNode>;
 
-extension SinglesChainExtension on Solution {
+extension SinglesChainExtension on Puzzle {
   Technique? medusa() {
     final result = singlesChain(true);
     if (result is Technique && result is! None) return Medusa('3D Medusa ' + result.message);
@@ -237,9 +237,9 @@ extension SinglesChainExtension on Solution {
 }
 
 class SinglesChain extends Technique {
-  SinglesChain(String message) : super(message, 100);
+  SinglesChain(String message) : super(message, 5000, 3000);
 }
 
 class Medusa extends Technique {
-  Medusa(String message) : super(message, 100);
+  Medusa(String message) : super(message, 14000, 8000);
 }
