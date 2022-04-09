@@ -85,10 +85,10 @@ void main(List<String> arguments) async {
   // Puzzle.fromString('3.......97.24...5...5.6....4...72.8....5.4....7.61...2....4.3...5...71.828......4');
   // Puzzle.fromString('5.24.6..9..721.....1...7...2.61...9.1.......8.5...82.1...8...3.....426..3..7.91.2');
 
-  // Puzzle.fromString('004000000020063584896052001000700000900380015003000067059000028040030100001000000')
-  //   ..solve()
-  //   ..display();
-  Puzzle.withDifficulty(min: 7000);
+  Puzzle.fromString('....6......7..95.19.437.8..3....7258.........785.....3....826.72.67..98..7..9....')
+    ..solve()
+    ..display();
+  // Puzzle.withDifficulty(min: 7000);
 }
 
 processFile(String filename) async {

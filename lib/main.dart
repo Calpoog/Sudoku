@@ -98,7 +98,9 @@ void main() {
   // Diabolical
   // Puzzle.fromString('3.......97.24...5...5.6....4...72.8....5.4....7.61...2....4.3...5...71.828......4');
 
-  Puzzle.withDifficulty().display();
+  Puzzle.fromString('....6......7..95.19.437.8..3....7258.........785.....3....826.72.67..98..7..9....')
+    ..solve()
+    ..display();
 
   runApp(MyApp());
 }

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 
+import 'techniques/forcing_chain.dart';
 import 'techniques/technique.dart';
 import 'candidates.dart';
 import 'techniques/unique_rectangle.dart';
@@ -218,16 +219,18 @@ class Puzzle {
     return squares.map((s) => candidates(s).digit).join('');
   }
 
-  bool assign(Square s, int d, [bool propagate = true]) {
-    final others = candidates(s).remove(d);
+  bool assign(Square s, int d, [CandidateState? state]) {
+    final candidates = state ?? _candidates;
+    final others = candidates[s]!.remove(d);
     for (var d2 in others.each()) {
-      if (!eliminate(s, d2, propagate)) return false;
+      if (!eliminate(s, d2, state)) return false;
     }
     return true;
   }
 
-  bool eliminate(Square s, int d, [bool propagate = true]) {
-    var c = candidates(s);
+  bool eliminate(Square s, int d, [CandidateState? state]) {
+    final candidates = state ?? _candidates;
+    var c = candidates[s]!;
     // Already removed
     if (!c.has(d)) return true;
     // print('Eliminate $d from $s');
@@ -238,30 +241,28 @@ class Puzzle {
       return false;
     }
 
-    if (propagate) {
-      // Only one candidate remains, propagate its removal from peers
-      // Naked singles
-      if (c.isSingle) {
-        // print('Single candidate $d in $s');
-        techniques.add(NakedSingle('for $d in $s'));
-        for (var peer in s.peers) {
-          if (!eliminate(peer, c.digit)) return false;
-        }
+    // Only one candidate remains, propagate its removal from peers
+    // Naked singles
+    if (c.isSingle) {
+      // print('Single candidate $d in $s');
+      techniques.add(NakedSingle('for $d in $s'));
+      for (var peer in s.peers) {
+        if (!eliminate(peer, c.digit)) return false;
       }
+    }
 
-      // Check if the square's units now only have 1 place d can be put
-      // Hidden singles
-      for (final unit in s.units) {
-        final dPlaces = unit.squares.where((s) => candidates(s).has(d));
-        if (dPlaces.isEmpty) {
-          // print('Contradiction: $unit has no place for $d');
-          // display();
-          return false;
-        } else if (dPlaces.length == 1 && !candidates(dPlaces.first).isSingle) {
-          // print('Hidden single $d in $unit');
-          techniques.add(HiddenSingle('for $d in $s of $unit'));
-          if (!assign(dPlaces.first, d)) return false;
-        }
+    // Check if the square's units now only have 1 place d can be put
+    // Hidden singles
+    for (final unit in s.units) {
+      final dPlaces = unit.squares.where((s) => candidates[s]!.has(d));
+      if (dPlaces.isEmpty) {
+        // print('Contradiction: $unit has no place for $d');
+        // display();
+        return false;
+      } else if (dPlaces.length == 1 && !candidates[dPlaces.first]!.isSingle) {
+        // print('Hidden single $d in $unit');
+        techniques.add(HiddenSingle('for $d in $s of $unit'));
+        if (!assign(dPlaces.first, d)) return false;
       }
     }
 
@@ -331,6 +332,7 @@ class Puzzle {
       () => jellyfish(rows, cols),
       () => jellyfish(cols, rows),
       uniqueRect,
+      forcingChain,
     ];
     Technique? result = None();
     var round = 0;
@@ -372,7 +374,7 @@ class Puzzle {
 
     var original = _candidates;
     for (var d in candidates(s).each()) {
-      _candidates = copy(_candidates);
+      _candidates = copy();
       if (assign(s, d) && search(n: n + 1) != null) {
         return _candidates;
       }
@@ -390,7 +392,7 @@ class Puzzle {
 
     var original = _candidates;
     for (var d in candidates(s).each()) {
-      _candidates = copy(_candidates);
+      _candidates = copy();
       if (assign(s, d)) {
         count += countSolutions(n: n + 1);
         _candidates = original;
@@ -429,7 +431,7 @@ class Puzzle {
   //   return null;
   // }
 
-  CandidateState copy(CandidateState candidates) {
-    return candidates.map((s, c) => MapEntry(s, Candidates(c.value)));
+  CandidateState copy() {
+    return _candidates.map((s, c) => MapEntry(s, Candidates(c.value)));
   }
 }
