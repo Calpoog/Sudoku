@@ -223,7 +223,7 @@ class Puzzle {
     final candidates = state ?? _candidates;
     final others = candidates[s]!.remove(d);
     for (var d2 in others.each()) {
-      if (!eliminate(s, d2, state)) return false;
+      if (!eliminate(s, d2, candidates)) return false;
     }
     return true;
   }
@@ -234,7 +234,7 @@ class Puzzle {
     // Already removed
     if (!c.has(d)) return true;
     // print('Eliminate $d from $s');
-    c = _candidates[s] = c.remove(d);
+    c = candidates[s] = c.remove(d);
     // All candidates removed, a contradiction
     if (c.isEmpty) {
       // print('Contradiction eliminating $d from $s');
