@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 
+import 'techniques/aic.dart';
+import 'techniques/box_intersection.dart';
 import 'techniques/forcing_chain.dart';
 import 'techniques/technique.dart';
 import 'candidates.dart';
@@ -107,6 +109,22 @@ class Puzzle {
   Puzzle.fromString(String grid) {
     final g = grid.replaceAll('.', '0').replaceAll(RegExp(r'[^\d]'), '').split('').map((d) => int.parse(d));
     _setup(g);
+  }
+
+  Puzzle.fromTestState(String grid) {
+    final g = grid.replaceAll(RegExp(r'[^\s\d]'), '').trim().split(RegExp(r'\s+')).map((c) {
+      var candies = Candidates(0);
+      print(c);
+      for (var d in c.split('')) {
+        candies = candies.add(int.parse(d));
+      }
+      return candies;
+    }).toList();
+
+    for (var i = 0; i < g.length; i++) {
+      _candidates[squares[i]] = g[i];
+    }
+    display();
   }
 
   Puzzle.solved() {
@@ -318,11 +336,12 @@ class Puzzle {
       () => hiddenSubset(pairs),
       () => nakedSubset(triplets),
       () => hiddenSubset(triplets),
+      () => nakedSubset(quads),
+      () => hiddenSubset(quads),
+      pointingPairs,
       () => xWings(rows, cols),
       () => xWings(cols, rows),
       singlesChain,
-      () => nakedSubset(quads),
-      () => hiddenSubset(quads),
       yWings,
       () => swordfish(rows, cols),
       () => swordfish(cols, rows),
@@ -332,17 +351,21 @@ class Puzzle {
       () => jellyfish(rows, cols),
       () => jellyfish(cols, rows),
       uniqueRect,
-      forcingChain,
+      aic,
+      // forcingChain,
     ];
     Technique? result = None();
     var round = 0;
     while (result != null && !isSolved()) {
       round++;
+      print('ROUND $round');
+      display();
 
       for (var i = 0; i < logicOrder.length; i++) {
         result = logicOrder[i]();
         if (result is None) continue;
         if (result is Technique) {
+          print(result.message);
           techniques.add(result);
         }
         // If it was null, or applied a technique, we break the for to restart logic order

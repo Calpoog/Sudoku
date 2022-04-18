@@ -69,14 +69,14 @@ extension XCycleExtension on Puzzle {
       for (var s in nodes.keys) {
         if (nodes[s]!.visited) continue;
         // print('starting from $s');
-        final cycle = findCycle(nodes: nodes, path: [], strengths: [], s: s);
+        final cycle = _findCycle(nodes: nodes, path: [], strengths: [], s: s);
         if (cycle != null) {
           // print('found cycle');
           var result;
           if (cycle.discontinuityIndex == null) {
-            result = rule1(cycle, d);
+            result = _rule1(cycle, d);
           } else {
-            result = cycle.isStrongDiscontinuity ? rule2(cycle, d) : rule3(cycle, d);
+            result = cycle.isStrongDiscontinuity ? _rule2(cycle, d) : _rule3(cycle, d);
           }
           if (result != null) return result;
         }
@@ -85,7 +85,7 @@ extension XCycleExtension on Puzzle {
     return None();
   }
 
-  Technique? rule1(Cycle cycle, int d) {
+  Technique? _rule1(Cycle cycle, int d) {
     final affected = <Square>[];
     for (var i = 0; i < cycle.squares.length; i++) {
       final prev = i == 0 ? cycle.squares.last : cycle.squares[i - 1];
@@ -110,22 +110,21 @@ extension XCycleExtension on Puzzle {
     return null;
   }
 
-  Technique? rule2(Cycle cycle, int d) {
+  Technique? _rule2(Cycle cycle, int d) {
     if (!assign(cycle.squares[cycle.discontinuityIndex!], d)) return null;
     return XCycle('XCycle Rule 2 for $d, $cycle');
   }
 
-  Technique? rule3(Cycle cycle, int d) {
+  Technique? _rule3(Cycle cycle, int d) {
     if (!eliminate(cycle.squares[cycle.discontinuityIndex!], d)) return null;
     return XCycle('XCycle Rule 3 for $d, $cycle');
   }
 
-  Cycle? findCycle({
+  Cycle? _findCycle({
     required Map<Square, CycleNode> nodes,
     required List<Square> path,
     required List<bool> strengths,
     required Square s,
-    int? discontinuityIndex,
   }) {
     final node = nodes[s]!;
 
@@ -149,7 +148,7 @@ extension XCycleExtension on Puzzle {
       var newStrengths = [...strengths, isStrong];
       for (var next in which) {
         if (path.isNotEmpty && next == path.last) continue;
-        final result = findCycle(
+        final result = _findCycle(
           nodes: nodes,
           path: newPath,
           strengths: newStrengths,
